@@ -16,8 +16,6 @@ c6="Hello \\n world"
 
 c7="{ a::Int b::Int}"
 
-a=TypeDecl (Id "a") (SingleType (Id "Int") [Id "b"])
-
 c8="{ a::Int b :: Int}"
 
-c9="a::Int b :: Int"
+c9="{a::f() ;b :: Int;}"

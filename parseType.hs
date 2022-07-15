@@ -26,7 +26,7 @@ data Val
     |ConstBool Bool
     deriving (Eq,Show)
 
-data TYPE=SingleType Id [Id] | ArrowType TYPE TYPE
+data TYPE=SingleType EXPR | ArrowType TYPE TYPE
         deriving (Eq,Show)
 
 newtype OP=OP Id

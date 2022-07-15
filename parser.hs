@@ -89,10 +89,9 @@ typeDecl=try $ do
 typE :: Parser TYPE
 typE=try $ singleType <|> arrow
 
-singleType=try $ do
-                    id<-iden
-                    p<-param
-                    return $ SingleType id p
+singleType=try $ do 
+                e<-expr
+                return $ SingleType e
 
 arrow=try $ do
                 t<-singleType
