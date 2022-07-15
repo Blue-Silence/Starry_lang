@@ -60,7 +60,7 @@ expr''
 
 
 decl :: Parser Decl
-decl=try $ (varDecl <|> funDecl <|> typeDecl) -- <* newline
+decl=try $ (varDecl <|> funDecl <|> typeDecl <|> dataStrDecl) 
 
 funDecl=try $ do
                 stringH "func"
@@ -84,10 +84,25 @@ typeDecl=try $ do
                 t<-typE
                 return (TypeDecl id t)
 
+dataStrDecl=try $ do 
+                        stringH "data"
+                        (TypeDecl id t)<-typeDecl
+                        many endOFLINE
+
+                        charH '{'
+                        many endOFLINE
+
+                        ts<-many (typeDecl<*endOFLINE)
+
+                        charH '}'
+                        many endOFLINE
+                        
+                        return $ DataStrDecl id t ts
+
 
 
 typE :: Parser TYPE
-typE=try $ singleType <|> arrow
+typE=try $ arrow <|> singleType 
 
 singleType=try $ do 
                 e<-expr
@@ -152,7 +167,8 @@ lambda=try $ do
 param :: Parser [Id]
 param=many iden
 
-keywordList=["if","else","case","of","while","var","func"]
+keywordList=["if","else","case","of","while","var","func","data"]
 idStart=['A'..'Z']++['a'..'z']
 
 illegalChar=['(',')','{','}',';']
+

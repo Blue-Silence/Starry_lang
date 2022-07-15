@@ -38,7 +38,7 @@ newtype Block=Block [Term]
 data Lambda=Lambda [Id] Block
     deriving (Eq,Show)
 
-data Decl=FunDecl Id [Id] Block | VarDecl Id (Maybe EXPR) (Maybe TYPE) | TypeDecl Id TYPE
+data Decl=FunDecl Id [Id] Block | VarDecl Id (Maybe EXPR) (Maybe TYPE) | TypeDecl Id TYPE | DataStrDecl Id TYPE [Decl]
     deriving (Eq,Show)
 
 data FunApp=FunApp Id [EXPR]
