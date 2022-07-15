@@ -1,6 +1,6 @@
 module ParseType where 
 
-data Id=Id String
+newtype Id=Id String
     deriving (Eq,Show)
 
 data EXPR
@@ -10,10 +10,14 @@ data EXPR
     -- |ConExpr ConStruct 
     |BlockExpr Block (Maybe TYPE)
     |LambdaExpr Lambda (Maybe TYPE)
-    |DeclExpr Decl 
     |AppExpr FunApp (Maybe TYPE)
--- |TypeDeclExpr TypeDecl
     deriving (Eq,Show)
+
+data Term 
+    =DeclTerm Decl
+    |ExprTerm EXPR
+    deriving (Eq,Show)
+
 
 data Val
     =ConstStr String
@@ -25,10 +29,10 @@ data Val
 data TYPE=SingleType Id [Id] | ArrowType TYPE TYPE
         deriving (Eq,Show)
 
-data OP=OP Id
+newtype OP=OP Id
     deriving (Eq,Show)
 
-data Block=Block [EXPR]
+newtype Block=Block [Term]
     deriving (Eq,Show)
 
 data Lambda=Lambda [Id] Block
@@ -40,7 +44,6 @@ data Decl=FunDecl Id [Id] Block | VarDecl Id (Maybe EXPR) (Maybe TYPE) | TypeDec
 data FunApp=FunApp Id [EXPR]
     deriving (Eq,Show)
 
---data TypeDecl=TypeDecl Id TYPE
 
 tagType :: EXPR->Maybe TYPE->EXPR
 tagType e t=case e of

@@ -20,14 +20,22 @@ symbol=L.symbol sc
 charH=Parser.lexeme . char
 stringH=Parser.lexeme . string
 
+term :: Parser Term
+term=try $ (fmap ExprTerm (expr<*charH ';'))
+        <|>(fmap DeclTerm (decl<*charH ';')) 
+
+
+
+
+
 expr :: Parser EXPR
-expr=try $ try (charH '(' *> expr <* charH ')')
+expr=try $ try ((charH '(' *> expr <* charH ')')
         <|>  do
                 e<-expr'
                 t<-try . optional $ do
                                     stringH "::"
                                     typE
-                return (tagType e t)
+                return (tagType e t)) 
 
 expr' :: Parser EXPR
 expr'=try $
@@ -45,7 +53,6 @@ expr'=try $
 expr'' :: Parser EXPR
 expr''
     =try (fmap (\x->ConstExpr x Nothing) constVal) --Const
-    <|> try (fmap (\x->DeclExpr x) decl) --Decl
     <|> try (fmap (\x->BlockExpr x Nothing) block) --Block
     <|> try (fmap (\x->VarExpr x Nothing) iden) --Id
     <|> try (fmap (\x->LambdaExpr x Nothing) lambda) --Lambda
@@ -98,7 +105,7 @@ op=try $ fmap (OP . Id ) $ stringH "+" <|> stringH "-" <|> stringH "*" <|> strin
 block :: Parser Block
 block=try $ do
                 charH '{'
-                e<-many (expr )-- <* newline)
+                e<-many term
                 charH '}'
                 return (Block e)
 
@@ -148,4 +155,4 @@ param=many iden
 keywordList=["if","else","case","of","while","var","func"]
 idStart=['A'..'Z']++['a'..'z']
 
-illegalChar=['(',')','{','}']
+illegalChar=['(',')','{','}',';']
