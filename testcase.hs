@@ -6,7 +6,7 @@ import Data.Void
 import Text.Megaparsec.Char
 
 c1="{ var a=1 :: Int \n var b=a+1 \n foo(a b) \n }  "
-c2="func foo(x y) \n { var a=1 :: Int \n var b=a+1 \n foo(a b) \n return a }  "
+c2="func foo(x y) ;;; { var a=1 :: Int ;; var b=a+1 ; foo(a b) ; return(a) ;};  "
 
 c3="foo(a b)"
 

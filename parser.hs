@@ -20,12 +20,12 @@ symbol=L.symbol sc
 charH=Parser.lexeme . char
 stringH=Parser.lexeme . string
 
+endOFLINE=charH ';'
+
 term :: Parser Term
-term=try $ (fmap ExprTerm (expr<*charH ';'))
-        <|>(fmap DeclTerm (decl<*charH ';')) 
-
-
-
+term=try $ (fmap ExprTerm (expr<*some endOFLINE))
+        <|>(fmap DeclTerm (decl<*some endOFLINE)) 
+        <|>some endOFLINE *> term
 
 
 expr :: Parser EXPR
@@ -68,6 +68,7 @@ funDecl=try $ do
                 charH '('
                 p<-param
                 charH ')'
+                many endOFLINE --deal with newline(self_defined)
                 b<-block
                 return (FunDecl id p b)
 
