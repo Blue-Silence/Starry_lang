@@ -7,7 +7,7 @@ data EXPR
     =ConstExpr Val (Maybe TYPE)
     |OpExpr OP [EXPR] (Maybe TYPE)
     |VarExpr Id (Maybe TYPE)
-    -- |ConExpr ConStruct 
+    |ConExpr ConStruct (Maybe TYPE)
     |BlockExpr Block (Maybe TYPE)
     |LambdaExpr Lambda (Maybe TYPE)
     |AppExpr FunApp (Maybe TYPE)
@@ -43,6 +43,16 @@ data Decl=FunDecl Id [Id] Block | VarDecl Id (Maybe EXPR) (Maybe TYPE) | TypeDec
 
 data FunApp=FunApp Id [EXPR]
     deriving (Eq,Show)
+
+data ConStruct
+    =ConstrIf EXPR EXPR EXPR (Maybe TYPE)
+    |ConstrWhile EXPR Block (Maybe TYPE)
+    |ConstrCase EXPR [(Pattern,EXPR)] (Maybe TYPE)
+    |ConReturn EXPR (Maybe TYPE)
+    deriving (Eq,Show)
+
+data Pattern=Pattern (Maybe Id) EXPR
+            deriving (Eq,Show)
 
 
 tagType :: EXPR->Maybe TYPE->EXPR

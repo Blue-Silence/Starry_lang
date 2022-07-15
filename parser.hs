@@ -1,24 +1,16 @@
-module Parser where
+module Parser(topMostParser) where
 
 import ParseType
 import Text.Megaparsec
 import Data.Void
 import Text.Megaparsec.Char
-import GHC (parser)
 import Text.Megaparsec.Char.Lexer as L
 
 type Parser = Parsec Void String
 
-sc :: Parser ()
-sc=L.space space1 (L.skipLineComment "//") (L.skipBlockComment "/*" "*/")
+topMostParser :: Parser [Decl]
+topMostParser=many decl
 
-lexeme ::Parser a->Parser a
-lexeme=L.lexeme sc
-symbol ::String->Parser String
-symbol=L.symbol sc
-
-charH=Parser.lexeme . char
-stringH=Parser.lexeme . string
 
 term :: Parser Term
 term=try $ (fmap DeclTerm decl)
@@ -54,6 +46,7 @@ expr''
     <|> try (fmap (\x->BlockExpr x Nothing) block) --Block
     <|> try (fmap (\x->VarExpr x Nothing) iden) --Id
     <|> try (fmap (\x->LambdaExpr x Nothing) lambda) --Lambda
+    <|> try (fmap (\x->ConExpr x Nothing) controlStr) --constrol struction
 
 
 
@@ -154,11 +147,65 @@ lambda=try $ do
                 b<-block
                 return (Lambda p b)
 
+controlStr :: Parser ConStruct
+controlStr=try $ conWhile <|> conIf <|> conCase <|> conReturn 
+
+conWhile=try $ do 
+                stringH "while"
+                t<-expr
+                b<-block 
+                return $ ConstrWhile t b Nothing
+conIf=try $ do
+                stringH "if"
+                t<-expr
+                stringH "then"
+                v1<-expr 
+                stringH "else"
+                v2<-expr 
+                return $ ConstrIf t v1 v2 Nothing
+
+conCase=try $ do
+                stringH "case"
+                t<-expr 
+                stringH "of"
+                cs<-many $ do 
+                                p<-pattern 
+                                stringH "->"
+                                e<-expr
+                                return (p,e)
+                return $ ConstrCase t cs Nothing
+
+conReturn=try $ do
+                stringH "return"
+                fmap (\x->ConReturn x Nothing) expr
+
+pattern=try $ do 
+                a<-optional (try $ iden'<* char '@')
+                e<-expr
+                return $ Pattern a e 
+
+
 param :: Parser [Id]
 param=many iden
 
-keywordList=["if","else","case","of","while","var","func","data"]
+keywordList=["if","else","case","of","while","var","func","data","return"]
 idStart=['A'..'Z']++['a'..'z']
 
-illegalChar=['(',')','{','}',';']
+illegalChar=['(',')','{','}',';','@']
 
+
+
+
+
+
+
+sc :: Parser ()
+sc=L.space space1 (L.skipLineComment "//") (L.skipBlockComment "/*" "*/")
+
+lexeme ::Parser a->Parser a
+lexeme=L.lexeme sc
+symbol ::String->Parser String
+symbol=L.symbol sc
+
+charH=Parser.lexeme . char
+stringH=Parser.lexeme . string
