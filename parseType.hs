@@ -26,7 +26,7 @@ data Val
     |ConstBool Bool
     deriving (Eq,Show)
 
-data TYPE=SingleType EXPR | ArrowType TYPE TYPE
+data TYPE=SingleType EXPR [TypeConstraint]| ArrowType TYPE TYPE [TypeConstraint]
         deriving (Eq,Show)
 
 newtype OP=OP Id
@@ -53,6 +53,9 @@ data ConStruct
 
 data Pattern=Pattern (Maybe Id) EXPR
             deriving (Eq,Show)
+
+data TypeConstraint=TypeConstraint Id [Id]
+                deriving (Eq,Show)
 
 
 tagType :: EXPR->Maybe TYPE->EXPR

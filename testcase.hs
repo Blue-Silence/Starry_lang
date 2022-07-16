@@ -22,4 +22,3 @@ c9="{a::f() ;b :: Int;}"
 
 c10="data fooT :: Type -> Type -> Type; {foo1 :: (a::x) -> (b::y) -> fooT(x y);}"
 
-f=[TypeDecl (Id "foo1") (ArrowType (SingleType (VarExpr (Id "a") (Just (SingleType (VarExpr (Id "x") Nothing))))) (ArrowType (SingleType (VarExpr (Id "b") (Just (SingleType (VarExpr (Id "y") Nothing))))) (SingleType (AppExpr (FunApp (Id "fooT") [VarExpr (Id "x") Nothing,VarExpr (Id "y") Nothing]) Nothing))))]

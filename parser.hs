@@ -85,17 +85,33 @@ dataStrDecl=try $ do
 
 
 typE :: Parser TYPE
-typE=try $ arrow <|> singleType 
+typE=try $ do
+                c<-(try . optional) $ try $ do
+                                                charH '('
+                                                c1<-typeConstraint
+                                                cs<-many $ try (charH ',' *>typeConstraint)
+                                                charH ')'
+                                                stringH "=>"
+                                                return $ c1:cs
+                t<-arrow <|> singleType
+                case t of
+                        SingleType e _->return $ SingleType e (concat c)
+                        ArrowType e1 e2 _->return $ ArrowType e1 e2 (concat c) 
 
-singleType=try $ do 
+singleType=try $ do
                 e<-expr
-                return $ SingleType e
+                return $ SingleType e []
 
 arrow=try $ do
                 t<-singleType
                 stringH"->"
                 t2<-typE
-                return $ ArrowType t t2
+                return $ ArrowType t t2 []
+
+typeConstraint=try $ do 
+                        f<-iden
+                        xs<-param
+                        return $ TypeConstraint f xs
 
 op :: Parser OP
 op=try $ fmap (OP . Id ) $ stringH "+" <|> stringH "-" <|> stringH "*" <|> stringH "/" <|> stringH "="
@@ -191,7 +207,7 @@ param=many iden
 keywordList=["if","else","case","of","while","var","func","data","return"]
 idStart=['A'..'Z']++['a'..'z']
 
-illegalChar=['(',')','{','}',';','@']
+illegalChar=['(',')','{','}',';','@',',']
 
 
 
