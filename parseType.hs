@@ -13,6 +13,7 @@ data EXPR
     |AppExpr FunApp (Maybe TYPE)
     deriving (Eq,Show)
 
+
 data Term 
     =DeclTerm Decl
     |ExprTerm EXPR
