@@ -1,7 +1,7 @@
 module ParseType where 
 
 newtype Id=Id String
-    deriving (Eq,Show)
+    deriving (Ord,Eq,Show)
 
 data EXPR
     =ConstExpr Val (Maybe TYPE)
@@ -11,13 +11,13 @@ data EXPR
     |BlockExpr Block (Maybe TYPE)
     |LambdaExpr Lambda (Maybe TYPE)
     |AppExpr FunApp (Maybe TYPE)
-    deriving (Eq,Show)
+    deriving (Ord,Eq,Show)
 
 
 data Term 
     =DeclTerm Decl
     |ExprTerm EXPR
-    deriving (Eq,Show)
+    deriving (Ord,Eq,Show)
 
 
 data Val
@@ -25,38 +25,38 @@ data Val
     |ConstInt Int 
     |ConstChar Char 
     |ConstBool Bool
-    deriving (Eq,Show)
+    deriving (Ord,Eq,Show)
 
 data TYPE=SingleType EXPR [TypeConstraint]| ArrowType TYPE TYPE [TypeConstraint]
-        deriving (Eq,Show)
+        deriving (Ord,Eq,Show)
 
 newtype OP=OP Id
-    deriving (Eq,Show)
+    deriving (Ord,Eq,Show)
 
 newtype Block=Block [Term]
-    deriving (Eq,Show)
+    deriving (Ord,Eq,Show)
 
 data Lambda=Lambda [Id] Block
-    deriving (Eq,Show)
+    deriving (Ord,Eq,Show)
 
 data Decl=FunDecl Id [Id] Block | VarDecl Id (Maybe EXPR) (Maybe TYPE) | TypeDecl Id TYPE | DataStrDecl Id TYPE [Decl]
-    deriving (Eq,Show)
+    deriving (Ord,Eq,Show)
 
 data FunApp=FunApp Id [EXPR]
-    deriving (Eq,Show)
+    deriving (Ord,Eq,Show)
 
 data ConStruct
     =ConstrIf EXPR EXPR EXPR (Maybe TYPE)
     |ConstrWhile EXPR Block (Maybe TYPE)
     |ConstrCase EXPR [(Pattern,EXPR)] (Maybe TYPE)
     |ConReturn EXPR (Maybe TYPE)
-    deriving (Eq,Show)
+    deriving (Ord,Eq,Show)
 
 data Pattern=Pattern (Maybe Id) EXPR
-            deriving (Eq,Show)
+            deriving (Ord,Eq,Show)
 
 data TypeConstraint=TypeConstraint Id [Id]
-                deriving (Eq,Show)
+                deriving (Ord,Eq,Show)
 
 
 tagType :: EXPR->Maybe TYPE->EXPR
