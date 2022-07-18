@@ -5,10 +5,12 @@ import ParseType(Id(..),Val(..))
 type TagC=Integer 
 tagCLt=[0..]
  
-data ENV=ENV [(Id,Tag)] [Decl] [TypeDecl] ENV | EmptyENV
+type SymTab=[(Id,Tag)]
+
+data ENV=ENV SymTab [Decl] [TypeDecl] ENV | EmptyENV
             deriving (Ord,Eq,Show)
 
-data Decl=ValDecl Tag EXPR_C | ConstructOR Tag | FunDecl [Tag] Block
+data Decl=ValDecl Tag EXPR_C | ConstructOR Tag | FunDecl Tag [Tag] Block
             deriving (Ord,Eq,Show)
 data TypeDecl=TypeDecl Tag Type 
             deriving (Ord,Eq,Show)
@@ -17,10 +19,13 @@ data Block=Block [Block] ENV Tag| BlockTerm Term
             deriving (Ord,Eq,Show)
 
 type Tag=[TagC]
-type NameSpace=[(Id,Tag)]
-data Type=SingleType Tag | ArrowType NameSpace Type Type| TypePlaceHolder Tag | TypeExpr FunApp 
+type NameSpace=[Id]
+data Type=SingleType Tag TypeENV | ArrowType TypeENV Type Type| TypePlaceHolder Id | TypeExpr FunApp TypeENV
             deriving (Ord,Eq,Show)
                                     
+data TypeENV=TypeENV Tag [(Id,Tag)] TypeENV
+            deriving (Ord,Eq,Show)
+
 data EXPR_C 
     =ConstExpr Val (Maybe Type)
     |OpExpr OP [EXPR_C] (Maybe Type)
