@@ -3,7 +3,8 @@ module TypeCheckingType where
 import ParseType(Id(..),Val(..))
 
 type TagC=Integer 
-tagCLt=[0..]
+tagCLt=[1..] -- 0 is preserved as type varible
+             -- Term block start at 1. Type block start at 0. 
  
 type SymTab=[(Id,Tag)]
 
@@ -20,10 +21,10 @@ data Block=Block [Block] ENV Tag| BlockTerm Term
 
 type Tag=[TagC]
 type NameSpace=[Id]
-data Type=SingleType Tag TypeENV | ArrowType TypeENV Type Type| TypePlaceHolder Id | TypeExpr FunApp TypeENV
+data Type=SingleType Tag TypeENV | ArrowType TypeENV Type Type| TypePlaceHolder Id | TypeExpr FunApp
             deriving (Ord,Eq,Show)
                                     
-data TypeENV=TypeENV Tag [(Id,Tag)] TypeENV
+data TypeENV=TypeENV Tag SymTab TypeENV | EmptyTypeENV
             deriving (Ord,Eq,Show)
 
 data EXPR_C 
