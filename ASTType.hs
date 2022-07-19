@@ -1,4 +1,4 @@
-module TypeCheckingType where
+module ASTType where
 
 import ParseType(Id(..),Val(..))
 

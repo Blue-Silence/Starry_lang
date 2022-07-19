@@ -1,7 +1,7 @@
 module ASTConstrcut where
 
 import Data.List
-import TypeCheckingType
+import ASTType
 import qualified ParseType as P
 
 pre :: [P.Decl]->P.Block
@@ -13,7 +13,8 @@ scopeConstruct param preSymTab tag (P.Block lt)= let    (def,term)=splitDef ([],
                                                         typeTab=genTypeTab symTab def
                                                         decl=genDecl symTab def
                                                         env=ENV symTab decl typeTab
-                                                            in undefined
+                                                        bs=concat $ zipWith (\x y->exprToBlock (tag++[x]) symTab y) tagCLtAny term
+                                                            in Block bs env tag
 
 
 splitDef t []=t
@@ -38,6 +39,9 @@ genDecl s ((P.FunDecl i is b):zs) = let t=findTag s i
                                         b'=scopeConstruct tsDecl s t b
                                             in (FunDecl t is' b'):(genDecl s zs)
 
+exprToBlock :: Tag->SymTab->P.EXPR->[Block]
+exprToBlock t s (P.BlockExpr b mt) = [scopeConstruct [] s t b]
+exprToBlock t s e = [BlockTerm . Term $ exprTransfer t s e]
 -------------------------------------------------------------------------------------------------------------------------------------------
 getID :: P.Decl->[P.Id]
 getID (P.FunDecl x _ _) = [x]
