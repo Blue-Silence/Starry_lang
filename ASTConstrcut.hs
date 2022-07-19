@@ -11,7 +11,8 @@ scopeConstruct :: [P.Decl]->SymTab->Tag->P.Block->Block
 scopeConstruct param preSymTab tag (P.Block lt)= let    (def,term)=splitDef ([],[]) lt
                                                         symTab=(genSymTab tag (param++def))++preSymTab
                                                         typeTab=genTypeTab symTab def
-                                            --env=ENV symTab
+                                                        decl=genDecl symTab def
+                                                        env=ENV symTab decl typeTab
                                                             in undefined
 
 
@@ -19,6 +20,24 @@ splitDef t []=t
 splitDef (xs,ys) (z:zs)=case z of 
                                 (P.DeclTerm x)->splitDef (x:xs,ys) zs
                                 (P.ExprTerm y)->splitDef (xs,y:ys) zs
+
+genDecl :: SymTab->[P.Decl]->[Decl]
+genDecl _ [] = []
+genDecl s ((P.TypeDecl _ _):zs) = genDecl s zs 
+genDecl s  ((P.DataStrDecl i _ ds):zs) = (ConstructOR (findTag s i)):
+                                            (map (\(P.TypeDecl t _)->(ConstructOR (findTag s t))) ds)
+                                            ++(genDecl s zs)
+genDecl s ((P.VarDecl i me mt):zs) = let    t=findTag s i
+                                            me'=fmap (exprTransfer t s) me
+                                            in case me' of
+                                                (Just e)->(ValDecl t e):(genDecl s zs)
+                                                _->error "Var not inited"
+genDecl s ((P.FunDecl i is b):zs) = let t=findTag s i
+                                        tsDecl=map (\x->P.VarDecl x Nothing Nothing) is 
+                                        is'=map (\(x,y)->y) (genSymTab t tsDecl)
+                                        b'=scopeConstruct tsDecl s t b
+                                            in (FunDecl t is' b'):(genDecl s zs)
+
 -------------------------------------------------------------------------------------------------------------------------------------------
 getID :: P.Decl->[P.Id]
 getID (P.FunDecl x _ _) = [x]
@@ -120,11 +139,6 @@ pesTag symTab tag ((P.Pattern ma e),eb) = let   a'=(fmap (\i->(i,tag++[1])) ma)
                                                                         (fmap (\(_,y)->y) a') (exprTransfer tag symTab' e)
                                                                     ,exprTransfer tag symTab' eb)
                                                     _->error "Not supported pattern matching structure"
-
-    
-    
-    
-
 
 ----------------------------------------------------------------------------------------------------------------------------------------------
 
