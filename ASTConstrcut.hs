@@ -37,20 +37,20 @@ genType :: SymTab->ENV->P.Decl->[TypeDecl]
 genType _ _ (P.FunDecl _ _ _) = []
 genType symTab preENV (P.VarDecl v _ t)=case t of 
                             Nothing->[]
-                            Just ty->[TypeDecl (findTag symTab v) (typeTransfer symTab preENV EmptyTypeENV [] ty)]
-genType symTab preENV (P.DataStrDecl x t decl)=(TypeDecl (findTag symTab x) (typeTransfer symTab preENV EmptyTypeENV [] t)):
+                            Just ty->[TypeDecl (findTag symTab v) (typeTransfer symTab preENV EmptyTypeENV [0] ty)]
+genType symTab preENV (P.DataStrDecl x t decl)=(TypeDecl (findTag symTab x) (typeTransfer symTab preENV EmptyTypeENV [0] t)):
                                                     (concat $ map (genType symTab preENV) decl)
-genType symTab preENV (P.TypeDecl x ty)=[TypeDecl (findTag symTab x) (typeTransfer symTab preENV EmptyTypeENV [] ty)]
+genType symTab preENV (P.TypeDecl x ty)=[TypeDecl (findTag symTab x) (typeTransfer symTab preENV EmptyTypeENV [0] ty)]
 
 typeTransfer :: SymTab->ENV->TypeENV->Tag->P.TYPE->Type
-typeTransfer symTab preENV preTypeENV tag a@(P.SingleType e tyc) = let  tyNamesp=zipWith (\x y->(y,[0,x])) tagCLt (getTypeVar tyc)
+typeTransfer symTab preENV preTypeENV tag a@(P.SingleType e tyc) = let  tyNamesp=zipWith (\x y->(y,tag++[x])) tagCLt (getTypeVar tyc)
                                                                         symTab'=getSymTab' preTypeENV symTab tyNamesp
                                                                         typeENV=TypeENV tag tyNamesp preTypeENV
                                                                             in case (exprTransfer symTab' preENV e) of
                                                                                 AppExpr funApp _->TypeExpr funApp
                                                                                 VarExpr t _->SingleType t typeENV
                                                                                 _->error $ "Illegal type structure" ++ show a
-typeTransfer symTab preENV preTypeENV tag a@(P.ArrowType t1 t2 tyc) = let   tyNamesp=zipWith (\x y->(y,[0,x])) tagCLt (getTypeVar tyc)
+typeTransfer symTab preENV preTypeENV tag a@(P.ArrowType t1 t2 tyc) = let   tyNamesp=zipWith (\x y->(y,tag++[x])) tagCLt (getTypeVar tyc)
                                                                             symTab'=getSymTab' preTypeENV symTab tyNamesp
                                                                             typeENV=TypeENV tag tyNamesp preTypeENV
                                                                             t1'=typeTransfer symTab' preENV typeENV (tag++[1]) t1
