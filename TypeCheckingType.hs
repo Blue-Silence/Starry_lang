@@ -5,10 +5,13 @@ import ParseType(Id(..),Val(..))
 type TagC=Integer 
 tagCLt=[1..] -- 0 is preserved as type varible
              -- Term block start at 1. Type block start at 0. 
+
+tagCLtAny=[-1,-2..] -- negative number used to tag anonymous scope
+
  
 type SymTab=[(Id,Tag)]
 
-data ENV=ENV SymTab [Decl] [TypeDecl] ENV | EmptyENV
+data ENV=ENV SymTab [Decl] [TypeDecl] | EmptyENV
             deriving (Ord,Eq,Show)
 
 data Decl=ValDecl Tag EXPR_C | ConstructOR Tag | FunDecl Tag [Tag] Block
@@ -46,7 +49,7 @@ data FunApp=FunApp Tag [EXPR_C]
 newtype OP=OP Tag
     deriving (Ord,Eq,Show)
 
-data Lambda=Lambda [Tag] Block
+data Lambda=Lambda SymTab Block
     deriving (Ord,Eq,Show)
 
 data ConStruct
