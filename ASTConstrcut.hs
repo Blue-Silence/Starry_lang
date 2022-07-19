@@ -31,7 +31,7 @@ genSymTab tag lt=let lt'=map head . group . sort .concat $ map getID lt in zipWi
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 genTypeTab :: SymTab->[P.Decl]->[TypeDecl]
-genTypeTab = undefined 
+genTypeTab s ps = concat (map (genType s) ps) 
 
 genType :: SymTab->P.Decl->[TypeDecl]
 genType  _ (P.FunDecl _ _ _) = []
@@ -104,14 +104,22 @@ exprTransfer tag symTab (P.ConExpr con mt) = let    t=fmap (typeTransfer symTab)
                                                                 in ConExpr con' t tag
 
 pesTag :: SymTab->Tag->(P.Pattern,P.EXPR)->(Pattern,EXPR_C) --For now,we only accept pattern matching on constructors.
-pesTag symTab tag ((P.Pattern ma e),eb) = let   --e'=exprTransfer [] symTab e 
-                                                a'=concat (fmap (:[]) ma) :: [P.Id]
-                                                --eb'=exprTransfer tag symTab eb
-                                                e'=case e of
-                                                    (P.ConstExpr v _)->ConstExpr v Nothing
-                                                    (P.VarExpr i _)->VarExpr (tag++[1]) Nothing
-                                                    _->undefined
-                                                in undefined
+pesTag symTab tag ((P.Pattern ma e),eb) = let   a'=(fmap (\i->(i,tag++[1])) ma) 
+                                                in  case e of
+                                                    (P.VarExpr i _)->let    symTab'=(concat (fmap (:[]) a'))++[(i,vaTag)]++symTab
+                                                                            vaTag=tag++[2]
+                                                                                in (Pattern 
+                                                                                        (fmap (\(_,y)->y) a') (VarExpr vaTag Nothing)
+                                                                                    ,exprTransfer tag symTab' eb) 
+                                                    (P.AppExpr (P.FunApp i es) _)->
+                                                        let param=map (\(P.VarExpr i _)->i) es
+                                                            symTab'=(concat (fmap (:[]) a'))++(zipWith (\x y->(x,tag++[y])) param [2,3..])++symTab
+                                                            sym=(genSymTab tag (fmap (\x->P.VarDecl x Nothing Nothing) param))
+                                                            es'=fmap (\(x,y)->y) sym
+                                                            in    (Pattern 
+                                                                        (fmap (\(_,y)->y) a') (exprTransfer tag symTab' e)
+                                                                    ,exprTransfer tag symTab' eb)
+
     
     
     
