@@ -119,6 +119,7 @@ pesTag symTab tag ((P.Pattern ma e),eb) = let   a'=(fmap (\i->(i,tag++[1])) ma)
                                                             in    (Pattern 
                                                                         (fmap (\(_,y)->y) a') (exprTransfer tag symTab' e)
                                                                     ,exprTransfer tag symTab' eb)
+                                                    _->error "Not supported pattern matching structure"
 
     
     
