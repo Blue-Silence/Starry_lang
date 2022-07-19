@@ -32,12 +32,12 @@ data TypeENV=TypeENV Tag SymTab TypeENV | EmptyTypeENV
 
 data EXPR_C 
     =ConstExpr Val (Maybe Type)
-    |OpExpr OP [EXPR_C] (Maybe Type)
+    |OpExpr OP [EXPR_C] (Maybe Type) Tag
     |VarExpr Tag (Maybe Type)
-    |ConExpr ConStruct (Maybe Type)
+    |ConExpr ConStruct (Maybe Type) Tag
     |BlockExpr Block (Maybe Type)
     |LambdaExpr Lambda (Maybe Type)
-    |AppExpr FunApp (Maybe Type)
+    |AppExpr FunApp (Maybe Type) Tag
         deriving (Ord,Eq,Show)
 
 data Term=Term EXPR_C

@@ -51,7 +51,7 @@ typeTransferH symTab preTypeENV tag a@(P.SingleType e tyc) = let    tyNamesp = z
                                                                     symTab'=getSymTab' preTypeENV symTab tyNamesp
                                                                     typeENV=TypeENV tag tyNamesp preTypeENV
                                                                     in case (exprTransfer (tag++[1]) symTab' e) of
-                                                                        AppExpr funApp _->TypeExpr funApp
+                                                                        AppExpr funApp _ _->TypeExpr funApp
                                                                         VarExpr t _->SingleType t typeENV
                                                                         _->error $ "Illegal type structure" ++ show a
 typeTransferH symTab preTypeENV tag a@(P.ArrowType t1 t2 tyc) = let tyNamesp=zipWith (\x y->(y,tag++[x])) tagCLt (getTypeVar tyc)
@@ -74,20 +74,44 @@ exprTransfer tag symTab (P.ConstExpr v mt) = ConstExpr v (fmap (typeTransfer sym
 exprTransfer tag symTab (P.OpExpr (P.OP i) es mt) =  let    i'=findTag symTab i
                                                             t=fmap (typeTransfer symTab) mt
                                                             es'=zipWith (\t e->exprTransfer (tagGen t tag) symTab e) tagCLtAny es
-                                                                in  OpExpr (OP i') es' t
+                                                                in  OpExpr (OP i') es' t tag
 exprTransfer tag symTab (P.VarExpr  i mt) = VarExpr (findTag symTab i) (fmap (typeTransfer symTab) mt)
 exprTransfer tag symTab (P.BlockExpr b mt) = BlockExpr  (scopeConstruct [] symTab tag b) (fmap (typeTransfer symTab) mt)
 exprTransfer tag symTab (P.AppExpr (P.FunApp i es) mt) = let    t=fmap (typeTransfer symTab) mt
                                                                 i'=findTag symTab i
                                                                 es'=zipWith (\t e->exprTransfer (tagGen t tag) symTab e) tagCLtAny es
-                                                                    in AppExpr (FunApp i' es') t
+                                                                    in AppExpr (FunApp i' es') t tag
 exprTransfer tag symTab (P.LambdaExpr (P.Lambda ids b) mt) = let    param=fmap (\x->P.VarDecl x Nothing  Nothing) ids 
                                                                     tags=genSymTab tag param
                                                                     t=fmap (typeTransfer symTab) mt
                                                                         in LambdaExpr (Lambda tags (scopeConstruct param symTab tag b)) t                            
-exprTransfer tag symTab (P.ConExpr con mt) = undefined 
+exprTransfer tag symTab (P.ConExpr con mt) = let    t=fmap (typeTransfer symTab) mt
+                                                    con'= case con of 
+                                                            P.ConstrIf e1 e2 e3 mt2->(ConstrIf 
+                                                                                            (exprTransfer (tag++[-1]) symTab e1) 
+                                                                                            (exprTransfer (tag++[-2]) symTab e2) 
+                                                                                            (exprTransfer (tag++[-3]) symTab e3) 
+                                                                                            (fmap (typeTransfer symTab) mt2)) 
+                                                            P.ConstrWhile e b mt2->(ConstrWhile
+                                                                                            (exprTransfer (tag++[-1]) symTab e)
+                                                                                            (scopeConstruct [] symTab (tag++[-2]) b)
+                                                                                            (fmap (typeTransfer symTab) mt2))
+                                                            P.ConReturn e mt2->(ConReturn (exprTransfer (tag++[-1]) symTab e) (fmap (typeTransfer symTab) mt2))
+                                                            P.ConstrCase e pes mt2->(ConstrCase 
+                                                                                            (exprTransfer (tag++[-1]) symTab e) 
+                                                                                            (zipWith (pesTag symTab) (map (\x->tag++[x]) [-2,-3..]) pes)
+                                                                                            (fmap (typeTransfer symTab) mt2))
+                                                                in ConExpr con' t tag
 
-    
+pesTag :: SymTab->Tag->(P.Pattern,P.EXPR)->(Pattern,EXPR_C) --For now,we only accept pattern matching on constructors.
+pesTag symTab tag ((P.Pattern ma e),eb) = let   --e'=exprTransfer [] symTab e 
+                                                a'=concat (fmap (:[]) ma) :: [P.Id]
+                                                --eb'=exprTransfer tag symTab eb
+                                                e'=case e of
+                                                    (P.ConstExpr v _)->ConstExpr v Nothing
+                                                    (P.VarExpr i _)->VarExpr (tag++[1]) Nothing
+                                                    _->undefined
+                                                in undefined
     
     
     
