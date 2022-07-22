@@ -7,6 +7,11 @@ import qualified ParseType as P
 pre :: [P.Decl]->P.Block
 pre x = P.Block $ fmap P.DeclTerm x
 
+astConstruct :: [P.Decl] -> Block
+astConstruct = scopeConstruct [] [] [] . pre
+
+----------------------------------------------------------------------------------------------------------------------
+
 scopeConstruct :: [P.Decl]->SymTab->Tag->P.Block->Block
 scopeConstruct param preSymTab tag (P.Block lt)= let    (def,term)=splitDef ([],[]) lt
                                                         symTab=(genSymTab tag (param++def))++preSymTab
