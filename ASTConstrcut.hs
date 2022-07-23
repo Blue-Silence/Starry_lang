@@ -155,7 +155,3 @@ getTypeVar x=error $ "Unsupport structure" ++ show x
 findTag :: SymTab->P.Id->Tag
 findTag ((iD,t):s) i=if iD==i then t else findTag s i 
 findTag [] i=error ("Undefined varible"++(show i))
-
-getENVSymTab :: ENV->SymTab 
-getENVSymTab EmptyENV=[]
-getENVSymTab (ENV s _ _ )=s

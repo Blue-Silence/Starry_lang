@@ -1,5 +1,4 @@
---module Parser(topMostParser) where
-module Parser where
+module Parser(topMostParser) where
 
 import ParseType
 import Text.Megaparsec
