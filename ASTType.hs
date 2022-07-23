@@ -27,7 +27,7 @@ type NameSpace=[Id]
 data Type=SingleType Tag TypeENV | ArrowType TypeENV Type Type| TypePlaceHolder Id | TypeExpr FunApp
             deriving (Ord,Eq,Show)
                                     
-data TypeENV=TypeENV Tag SymTab TypeENV | EmptyTypeENV
+data TypeENV=TypeENV Tag SymTab
             deriving (Ord,Eq,Show)
 
 data EXPR_C 

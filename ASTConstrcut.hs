@@ -73,25 +73,21 @@ genType symTab (P.TypeDecl x ty) = [TypeDecl (findTag symTab x) (typeTransfer sy
 -------------------------------------------------------------------------------------------------------------------------------------------
 
 typeTransfer :: SymTab -> P.TYPE -> Type
-typeTransfer x e = typeTransferH x EmptyTypeENV [0] e
-typeTransferH :: SymTab->TypeENV->Tag->P.TYPE->Type --When clled,tag should always be [0] (meaning a type scope)
-typeTransferH symTab preTypeENV tag a@(P.SingleType e tyc) = let    tyNamesp = zipWith (\x y->(y,tag++[x])) tagCLt (getTypeVar tyc)
-                                                                    symTab'=getSymTab' preTypeENV symTab tyNamesp
-                                                                    typeENV=TypeENV tag tyNamesp preTypeENV
-                                                                    in case (exprTransfer (tag++[1]) symTab' e) of
-                                                                        AppExpr funApp _ _->TypeExpr funApp
-                                                                        VarExpr t _->SingleType t typeENV
-                                                                        _->error $ "Illegal type structure" ++ show a
-typeTransferH symTab preTypeENV tag a@(P.ArrowType t1 t2 tyc) = let tyNamesp=zipWith (\x y->(y,tag++[x])) tagCLt (getTypeVar tyc)
-                                                                    symTab'=getSymTab' preTypeENV symTab tyNamesp
-                                                                    typeENV=TypeENV tag tyNamesp preTypeENV
-                                                                    t1'=typeTransferH symTab' typeENV (tag++[1]) t1
-                                                                    t2'=typeTransferH symTab' typeENV (tag++[2]) t2 
-                                                                        in ArrowType typeENV t1' t2'
-
-getSymTab' :: TypeENV->SymTab->SymTab->SymTab
-getSymTab' EmptyTypeENV x y=x++y
-getSymTab' (TypeENV _ z t) x y= z++x++y++(getSymTab' t [] [])
+typeTransfer x e = typeTransferH x [0] e
+typeTransferH :: SymTab->Tag->P.TYPE->Type --When clled,tag should always be [0] (meaning a type scope)
+typeTransferH symTab tag a@(P.SingleType e tyc) = let   tyNamesp = zipWith (\x y->(y,tag++[x])) tagCLt (getTypeVar tyc)
+                                                        symTab'=tyNamesp++symTab 
+                                                        typeENV=TypeENV tag tyNamesp 
+                                                            in case (exprTransfer (tag++[1]) symTab' e) of
+                                                                AppExpr funApp _ _->TypeExpr funApp
+                                                                VarExpr t _->SingleType t typeENV
+                                                                _->error $ "Illegal type structure" ++ show a
+typeTransferH symTab tag a@(P.ArrowType t1 t2 tyc) = let    tyNamesp=zipWith (\x y->(y,tag++[x])) tagCLt (getTypeVar tyc)
+                                                            symTab'=tyNamesp++symTab
+                                                            typeENV=TypeENV tag tyNamesp
+                                                            t1'=typeTransferH symTab' (tag++[1]) t1
+                                                            t2'=typeTransferH symTab' (tag++[2]) t2 
+                                                                in ArrowType typeENV t1' t2'
 
 -------------------------------------------------------------------------------------------------------------------------------------------
 
