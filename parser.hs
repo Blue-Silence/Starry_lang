@@ -1,4 +1,5 @@
-module Parser(topMostParser) where
+--module Parser(topMostParser) where
+module Parser where
 
 import ParseType
 import Text.Megaparsec
@@ -85,33 +86,39 @@ dataStrDecl=try $ do
 
 
 typE :: Parser TYPE
-typE=try $ do
-                c<-(try . optional) $ try $ do
+typE=try (charH '(' *>typE'<*charH ')') <|> typE'
+typE'=try $ do
+                c<-gettypeConstraint
+                t<-arrow <|> singleType
+                case t of
+                        SingleType e c1->return $ SingleType e ((concat c)++c1)
+                        ArrowType e1 e2 c2->return $ ArrowType e1 e2 ((concat c)++c2)
+
+singleType=try (charH '(' *>singleType'<*charH ')') <|> singleType'
+singleType'=try $ do
+                c1<-gettypeConstraint
+                e<-expr
+                return $ SingleType e (concat c1)
+arrow=try (charH '(' *>arrow'<*charH ')') <|> arrow'
+arrow'=try $ do
+                c2<-gettypeConstraint
+                t<-singleType
+                stringH "->"
+                t2<-typE
+                return $ ArrowType t t2 (concat c2)
+
+typeConstraint=try $ do 
+                        f<-iden
+                        xs<-param
+                        return $ TypeConstraint f xs
+gettypeConstraint=(try . optional) $ try $ do
                                                 charH '('
                                                 c1<-typeConstraint
                                                 cs<-many $ try (charH ',' *>typeConstraint)
                                                 charH ')'
                                                 stringH "=>"
                                                 return $ c1:cs
-                t<-arrow <|> singleType
-                case t of
-                        SingleType e _->return $ SingleType e (concat c)
-                        ArrowType e1 e2 _->return $ ArrowType e1 e2 (concat c) 
 
-singleType=try $ do
-                e<-expr
-                return $ SingleType e []
-
-arrow=try $ do
-                t<-singleType
-                stringH"->"
-                t2<-typE
-                return $ ArrowType t t2 []
-
-typeConstraint=try $ do 
-                        f<-iden
-                        xs<-param
-                        return $ TypeConstraint f xs
 
 op :: Parser OP
 op=try $ fmap (OP . Id ) $ stringH "+" <|> stringH "-" <|> stringH "*" <|> stringH "/" <|> stringH "="
