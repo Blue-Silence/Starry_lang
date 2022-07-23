@@ -14,7 +14,7 @@ astConstruct = scopeConstruct [] [] [] . pre
 
 scopeConstruct :: [P.Decl]->SymTab->Tag->P.Block->Block
 scopeConstruct param preSymTab tag (P.Block lt)= let    (def,term)=splitDef ([],[]) lt
-                                                        symTab=(genSymTab tag (param++def))++preSymTab
+                                                        symTab=(genSymTab tag param def )++preSymTab
                                                         typeTab=genTypeTab symTab def
                                                         decl=genDecl symTab def
                                                         env=ENV symTab decl typeTab
@@ -22,7 +22,7 @@ scopeConstruct param preSymTab tag (P.Block lt)= let    (def,term)=splitDef ([],
                                                             in Block bs env tag
 
 
-splitDef t []=t
+splitDef (a,b) []=(reverse a,reverse b)
 splitDef (xs,ys) (z:zs)=case z of 
                                 (P.DeclTerm x)->splitDef (x:xs,ys) zs
                                 (P.ExprTerm y)->splitDef (xs,y:ys) zs
@@ -40,7 +40,7 @@ genDecl s ((P.VarDecl i me mt):zs) = let    t=findTag s i
                                                 _->error "Var not inited"
 genDecl s ((P.FunDecl i is b):zs) = let t=findTag s i
                                         tsDecl=map (\x->P.VarDecl x Nothing Nothing) is 
-                                        is'=map (\(x,y)->y) (genSymTab t tsDecl)
+                                        is'=map (\(x,y)->y) (genSymTab t [] tsDecl)
                                         b'=scopeConstruct tsDecl s t b
                                             in (FunDecl t is' b'):(genDecl s zs)
 
@@ -54,8 +54,8 @@ getID (P.VarDecl x _ _)=[x]
 getID (P.DataStrDecl x _ decl)=x:(concat $ map getID decl)
 getID (P.TypeDecl x _)=[x]
 
-genSymTab :: Tag->[P.Decl]->SymTab
-genSymTab tag lt=let lt'=map head . group . sort .concat $ map getID lt in zipWith (\i t->(i,tagGen t tag)) lt' tagCLt
+genSymTab :: Tag->[P.Decl]->[P.Decl]->SymTab
+genSymTab tag prelt lt=let lt'=(concat (map getID prelt))++(map head . group . sort .concat $ map getID lt) in zipWith (\i t->(i,tagGen t tag)) lt' tagCLt
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 genTypeTab :: SymTab->[P.Decl]->[TypeDecl]
@@ -106,7 +106,7 @@ exprTransfer tag symTab (P.AppExpr (P.FunApp i es) mt) = let    t=fmap (typeTran
                                                                 es'=zipWith (\t e->exprTransfer (tagGen t tag) symTab e) tagCLtAny es
                                                                     in AppExpr (FunApp i' es') t tag
 exprTransfer tag symTab (P.LambdaExpr (P.Lambda ids b) mt) = let    param=fmap (\x->P.VarDecl x Nothing  Nothing) ids 
-                                                                    tags=genSymTab tag param
+                                                                    tags=genSymTab tag [] param
                                                                     t=fmap (typeTransfer symTab) mt
                                                                         in LambdaExpr (Lambda tags (scopeConstruct param symTab tag b)) t                            
 exprTransfer tag symTab (P.ConExpr con mt) = let    t=fmap (typeTransfer symTab) mt
@@ -138,7 +138,7 @@ pesTag symTab tag ((P.Pattern ma e),eb) = let   a'=(fmap (\i->(i,tag++[1])) ma)
                                                     (P.AppExpr (P.FunApp i es) _)->
                                                         let param=map (\(P.VarExpr i _)->i) es
                                                             symTab'=(concat (fmap (:[]) a'))++(zipWith (\x y->(x,tag++[y])) param [2,3..])++symTab
-                                                            sym=(genSymTab tag (fmap (\x->P.VarDecl x Nothing Nothing) param))
+                                                            sym=(genSymTab tag [] (fmap (\x->P.VarDecl x Nothing Nothing) param))
                                                             es'=fmap (\(x,y)->y) sym
                                                             in    (Pattern 
                                                                         (fmap (\(_,y)->y) a') (exprTransfer tag symTab' e)
