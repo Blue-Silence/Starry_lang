@@ -1,4 +1,4 @@
-module ASTConstrcut where
+module ASTConstrcut(astConstruct) where
 
 import Data.List
 import ASTType
