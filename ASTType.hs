@@ -12,7 +12,7 @@ data Module=Module Tag ENV
  
 type SymTab=[(Id,Tag)]
 
-data ENV=ENV SymTab [Decl] [TypeDecl] | EmptyENV
+data ENV=ENV SymTab [Decl] [TypeDecl]
             deriving (Ord,Eq,Show)
 
 data Decl=ValDecl Tag EXPR_C | ConstructOR Tag | FunDecl Tag [Tag] Block
