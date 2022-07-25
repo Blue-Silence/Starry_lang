@@ -1,4 +1,4 @@
-module ASTConstrcut(astConstruct) where
+module ASTConstrcut(moduleConstruct) where
 
 import Data.List
 import ASTType
@@ -7,8 +7,8 @@ import qualified ParseType as P
 pre :: [P.Decl]->P.Block
 pre x = P.Block $ fmap P.DeclTerm x
 
-astConstruct :: [P.Decl] -> Block
-astConstruct = scopeConstruct [] [] [] . pre
+moduleConstruct :: Tag->[P.Decl] -> Module
+moduleConstruct t ds = let (Block _ e _) = scopeConstruct [] [] t . pre $ ds in Module t e 
 
 ----------------------------------------------------------------------------------------------------------------------
 
