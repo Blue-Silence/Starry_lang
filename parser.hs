@@ -90,21 +90,19 @@ typE'=try $ do
                 c<-gettypeConstraint
                 t<-arrow <|> singleType
                 case t of
-                        SingleType e c1->return $ SingleType e ((concat c)++c1)
-                        ArrowType e1 e2 c2->return $ ArrowType e1 e2 ((concat c)++c2)
+                        SingleType e c1->return $ SingleType e (concat c)
+                        ArrowType e1 e2 c2->return $ ArrowType e1 e2 (concat c)
 
 singleType=try (charH '(' *>singleType'<*charH ')') <|> singleType'
 singleType'=try $ do
-                c1<-gettypeConstraint
                 e<-expr
-                return $ SingleType e (concat c1)
+                return $ SingleType e []
 arrow=try (charH '(' *>arrow'<*charH ')') <|> arrow'
 arrow'=try $ do
-                c2<-gettypeConstraint
-                t<-singleType
+                t<-singleType<|>try (charH '(' *>typE'<*charH ')')
                 stringH "->"
                 t2<-typE
-                return $ ArrowType t t2 (concat c2)
+                return $ ArrowType t t2 []
 
 typeConstraint=try $ do 
                         f<-iden
