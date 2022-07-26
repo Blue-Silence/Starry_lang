@@ -35,7 +35,7 @@ checkDecl t (FunDecl tag ts b) = let    funType'=getType t tag
 
 
 checkExpr :: [ENV]->EXPR_C ->Either Type ErrM
-checkExpr = undefined 
+checkExpr es = undefined 
 
 -----------------------------------------------------------------------------------------------------------------------------
 
@@ -45,29 +45,29 @@ matchType x y = case getRe [x,y] of
                     Right x->Right x 
                     Left _-> let    (Left st)=x 
                                     (Left tt)=y 
-                                        in case matchTypeH (0,[],[]) st tt of 
+                                        in case matchTypeH [(0,[],[])] st tt of 
                                                 Right _->Right ("Type mismatch. Expect:  "++(show st)++"  Got:  "++(show tt)++"\n")
                                                 Left _->Left st
 
-matchTypeH :: (TagC,[(Tag,Type)],[(Tag,Type)])->Type->Type->Either (TagC,[(Tag,Type)],[(Tag,Type)]) ()
+matchTypeH :: [(TagC,[(Tag,Type)],[(Tag,Type)])]->Type->Type->Either (TagC,[(Tag,Type)],[(Tag,Type)]) ()
 matchTypeH _ (SingleType _ _) (ArrowType _ _ _) = Right ()
-matchTypeH (tc,stv,ttv) t1@(ArrowType _ _ _) t2@(SingleType _ (TypeENV _ tyenv)) = let    (tc',ttv')=addPH tc ttv tyenv
-                                                                                                in matching  (tc',stv,ttv') t1 t2 
-matchTypeH (tc,stv,ttv) t1@(ArrowType (TypeENV _ tye1) t11 t12) t2@(ArrowType (TypeENV _ tye2) t21 t22) = let   (tc',stv')=addPH tc stv tye1
-                                                                                                                (tc'',ttv')=addPH tc' ttv tye2
-                                                                                                                    in case matching (tc'',stv',ttv') t11 t21 of
-                                                                                                                            Left a@(tc''',stv''',ttv''')->matchTypeH a t12 t22
+matchTypeH ((tc,stv,ttv):as) t1 t2@(SingleType _ (TypeENV _ tyenv)) = let    (tc',ttv')=addPH tc ttv tyenv
+                                                                                                in matching  ((tc',stv,ttv'):as) t1 t2 
+matchTypeH ((tc,stv,ttv):as) t1@(ArrowType (TypeENV _ tye1) t11 t12) t2@(ArrowType (TypeENV _ tye2) t21 t22) = let  (tc',stv')=addPH tc stv tye1
+                                                                                                                    (tc'',ttv')=addPH tc' ttv tye2
+                                                                                                                        in case matching ((tc'',stv',ttv'):as) t11 t21 of
+                                                                                                                            Left a@(tc''',stv''',ttv''')->matchTypeH (a:as) t12 t22
                                                                                                                             Right _->Right ()
-matchTypeH (tc,stv,ttv) t1@(SingleType _ (TypeENV _ tye1)) t2@(SingleType _ (TypeENV _ tye2)) = let (tc',stv')=addPH tc stv tye1
-                                                                                                    (tc'',ttv')=addPH tc' ttv tye2
-                                                                                                        in matching  (tc'',stv',ttv') t1 t2
+matchTypeH ((tc,stv,ttv):as) t1@(SingleType _ (TypeENV _ tye1)) t2@(SingleType _ (TypeENV _ tye2)) = let    (tc',stv')=addPH tc stv tye1
+                                                                                                            (tc'',ttv')=addPH tc' ttv tye2
+                                                                                                                in matching  ((tc'',stv',ttv'):as) t1 t2
 matchTypeH a t1@(TypeExpr _) t2@(TypeExpr _) = matching a t1 t2                                                                                              
 matchTypeH a b c = Right () --error ("matchTypeH function not matched. Param: "++(show a)++(show b)++(show c))
 
 addPH tc ttv [] = (tc,ttv)
 addPH tc ttv ((_,t):ts) = addPH (tc+1) ((t,TypePlaceHolder [tc]):ttv) ts
 
-matching :: (TagC,[(Tag,Type)],[(Tag,Type)])->Type->Type->Either (TagC,[(Tag,Type)],[(Tag,Type)]) ()
+matching :: [(TagC,[(Tag,Type)],[(Tag,Type)])]->Type->Type->Either (TagC,[(Tag,Type)],[(Tag,Type)]) ()
 matching = undefined 
 
 ---------------------------------------------------------------------------------------------------------------------------
