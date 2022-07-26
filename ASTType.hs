@@ -25,7 +25,7 @@ data Block=Block [Block] ENV Tag| BlockTerm Term
 
 type Tag=[TagC]
 type NameSpace=[Id]
-data Type=SingleType Tag TypeENV | ArrowType TypeENV Type Type| TypePlaceHolder Id | TypeExpr FunApp
+data Type=SingleType Tag TypeENV | ArrowType TypeENV Type Type| TypePlaceHolder Tag | TypeExpr FunApp
             deriving (Ord,Eq,Show)
                                     
 data TypeENV=TypeENV Tag SymTab
