@@ -100,7 +100,7 @@ getTmpVarTypeH x t = let (Just s)=lookup t x in s
 matchTypeExpr :: [(TagC,[(Tag,Type)],[(Tag,Type)])]->EXPR_C->EXPR_C->Either [(TagC,[(Tag,Type)],[(Tag,Type)])] ()
 matchTypeExpr a (AppExpr (FunApp f1 es1) _ _) (AppExpr (FunApp f2 es2) _ _)
     |length es1 /= length es2 = Right ()
-    |otherwise = foldl matchTypeEH (Left a) ((VarExpr f1 Nothing , VarExpr f2 Nothing):(zip es1 es2))
+    |otherwise = foldl matchTypeEH (Left a) ((f1,f2):(zip es1 es2))
         where matchTypeEH a (x,y) = case a of 
                                     (Left a')->matchTypeExpr a' x y
                                     _->Right ()
@@ -139,7 +139,7 @@ liftExpr lt t (VarExpr tag mty) = let   mty'=fmap (lift lt t) mty
 liftExpr lt t (ConstExpr v mty) = ConstExpr v $ fmap (lift lt t) mty
 liftExpr lt t (AppExpr (FunApp t1 es) mty tag) = let    mty'=fmap (lift lt t) mty
                                                         es'=map (liftExpr lt t) es
-                                                        t1'=if t1==t then lt++t1 else t1
+                                                        t1'=liftExpr lt t t1
                                                             in AppExpr (FunApp t1' es') mty' tag
 liftExpr lt t (TypeExpr ty) = TypeExpr (lift lt t ty)
 liftExpr _ _ a = error "Type structure not support"

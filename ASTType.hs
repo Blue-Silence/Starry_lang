@@ -31,6 +31,8 @@ data Type=SingleType Tag TypeENV | ArrowType TypeENV Type Type| TypePlaceHolder 
 data TypeENV=TypeENV Tag SymTab
             deriving (Ord,Eq,Show)
 
+emptyTypeENV = TypeENV [] []
+
 data EXPR_C 
     =ConstExpr Val (Maybe Type)
     |OpExpr OP [EXPR_C] (Maybe Type) Tag
