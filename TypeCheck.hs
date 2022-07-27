@@ -49,32 +49,32 @@ matchType x y = case getRe [x,y] of
                                                 Right _->Right ("Type mismatch. Expect:  "++(show st)++"  Got:  "++(show tt)++"\n")
                                                 Left _->Left st
 
-matchTypeH :: [(TagC,[(Tag,Type)],[(Tag,Type)])]->Type->Type->Either (TagC,[(Tag,Type)],[(Tag,Type)]) ()
+matchTypeH :: [(TagC,[(Tag,Type)],[(Tag,Type)])]->Type->Type->Either [(TagC,[(Tag,Type)],[(Tag,Type)])] ()
 matchTypeH _ (SingleType _ _) (ArrowType _ _ _) = Right ()
-matchTypeH ((tc,stv,ttv):as) t1 t2@(SingleType _ (TypeENV _ tyenv)) = let    (tc',ttv')=addPH tc ttv tyenv
-                                                                                                in matching  ((tc',stv,ttv'):as) t1 t2 
 matchTypeH ((tc,stv,ttv):as) t1@(ArrowType (TypeENV _ tye1) t11 t12) t2@(ArrowType (TypeENV _ tye2) t21 t22) = let  (tc',stv')=addPH tc stv tye1
                                                                                                                     (tc'',ttv')=addPH tc' ttv tye2
                                                                                                                         in case matching ((tc'',stv',ttv'):as) t11 t21 of
-                                                                                                                            Left a@(tc''',stv''',ttv''')->matchTypeH (a:as) t12 t22
+                                                                                                                            Left a->matchTypeH a t12 t22
                                                                                                                             Right _->Right ()
 matchTypeH ((tc,stv,ttv):as) t1@(SingleType _ (TypeENV _ tye1)) t2@(SingleType _ (TypeENV _ tye2)) = let    (tc',stv')=addPH tc stv tye1
                                                                                                             (tc'',ttv')=addPH tc' ttv tye2
-                                                                                                                in matching  ((tc'',stv',ttv'):as) t1 t2
-matchTypeH a t1@(TypeExpr _) t2@(TypeExpr _) = matching a t1 t2                                                                                              
+                                                                                                                in matching  ((tc'',stv',ttv'):as) t1 t2                                                                          
+matchTypeH ((tc,stv,ttv):as) t1 t2@(SingleType _ (TypeENV _ tyenv)) = let    (tc',ttv')=addPH tc ttv tyenv
+                                                                                                in matching  ((tc',stv,ttv'):as) t1 t2 
+--matchTypeH a t1@(TypeExpr _) t2@(TypeExpr _) = matching a t1 t2                                                                                              
 matchTypeH a b c = Right () --error ("matchTypeH function not matched. Param: "++(show a)++(show b)++(show c))
 
 addPH tc ttv [] = (tc,ttv)
 addPH tc ttv ((_,t):ts) = addPH (tc+1) ((t,TypePlaceHolder [tc]):ttv) ts
 
-matching :: [(TagC,[(Tag,Type)],[(Tag,Type)])]->Type->Type->Either (TagC,[(Tag,Type)],[(Tag,Type)]) ()
+matching :: [(TagC,[(Tag,Type)],[(Tag,Type)])]->Type->Type->Either [(TagC,[(Tag,Type)],[(Tag,Type)])] ()
 matching = undefined 
 
 ---------------------------------------------------------------------------------------------------------------------------
 getFunType :: Tag->Type->[Tag]->([(Tag,Type)],Type)
 getFunType lt a [] = ([],a)
 getFunType lt (SingleType _ _) [_] = error "Number of param mismatch"
-getFunType lt a@(TypeExpr _) _ = error ("Type structure not supported"++show a)
+getFunType lt a@(ExprType _ _) _ = error ("Type structure not supported"++show a)
 getFunType lt (ArrowType (TypeENV _ te) t1 t2) (tag1:tags)= let te'=fmap snd te
                                                                 t1'=foldl (\x y->lift lt y x) t1 te'
                                                                 t2'=foldl (\x y->lift lt y x) t2 te'
@@ -82,20 +82,22 @@ getFunType lt (ArrowType (TypeENV _ te) t1 t2) (tag1:tags)= let te'=fmap snd te
                                                                     in ((tag1,t1'):xs,y)
 getFunType _ (TypePlaceHolder _) _ = error " "
 
+lift :: Tag -> Tag -> Type -> Type
 lift lt t a@(SingleType tg env) = if tg==t then SingleType (lt++tg) env else a
 lift lt t a@(ArrowType env t1 t2) = ArrowType env (lift lt t t1) (lift lt t t2) 
-lift lt t a@(TypeExpr fun)=TypeExpr $ liftFunApp lt t fun
+lift lt t a@(ExprType e env)=ExprType (liftExpr lt t e) env
+ 
 
-liftFunApp lt t (FunApp f ts) = let ts'=fmap (liftExpr lt t) ts
-                                    in if f==t then FunApp (lt++f) ts' else FunApp f ts' 
+liftExpr :: Tag -> Tag -> EXPR_C -> EXPR_C
 liftExpr lt t (VarExpr tag mty) = let   mty'=fmap (lift lt t) mty
                                             in if tag==t then VarExpr (lt++t) mty' else VarExpr t mty'
-liftExpr lt t (OpExpr op es mty tag) = let  mty'=fmap (lift lt t) mty
-                                            es'=fmap (liftExpr lt t) es
-                                                in (OpExpr op es' mty' tag)
 liftExpr lt t (ConstExpr v mty) = ConstExpr v $ fmap (lift lt t) mty
-liftExpr lt t (AppExpr funapp mty tag) = AppExpr (liftFunApp lt t funapp) (fmap (lift lt t) mty) tag
-liftExpr _ _ _ = error "Type structure not support"
+liftExpr lt t (AppExpr (FunApp t1 es) mty tag) = let    mty'=fmap (lift lt t) mty
+                                                        es'=map (liftExpr lt t) es 
+                                                        t1'=if t1==t then lt++t1 else t1
+                                                            in AppExpr (FunApp t1' es') mty' tag
+liftExpr lt t (TypeExpr ty) = TypeExpr (lift lt t ty) 
+liftExpr _ _ a = error "Type structure not support"
 
 ----------------------------------------------------------------------------
 

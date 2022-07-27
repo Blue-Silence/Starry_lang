@@ -79,9 +79,8 @@ typeTransferH symTab tag a@(P.SingleType e tyc) = let   tyNamesp = zipWith (\x y
                                                         symTab'=tyNamesp++symTab 
                                                         typeENV=TypeENV tag tyNamesp 
                                                             in case (exprTransfer (tag++[1]) symTab' e) of
-                                                                AppExpr funApp _ _->TypeExpr funApp
                                                                 VarExpr t _->SingleType t typeENV
-                                                                _->error $ "Illegal type structure" ++ show a
+                                                                a->ExprType a typeENV
 typeTransferH symTab tag a@(P.ArrowType t1 t2 tyc) = let    tyNamesp=zipWith (\x y->(y,tag++[x])) tagCLt (getTypeVar tyc)
                                                             symTab'=tyNamesp++symTab
                                                             typeENV=TypeENV tag tyNamesp
@@ -126,6 +125,7 @@ exprTransfer tag symTab (P.ConExpr con mt) = let    t=fmap (typeTransfer symTab)
                                                                                             (zipWith (pesTag symTab) (map (\x->tag++[x]) [-2,-3..]) pes)
                                                                                             (fmap (typeTransfer symTab) mt2))
                                                                 in ConExpr con' t tag
+exprTransfer tag symTab (P.TypeExpr ty) = TypeExpr (typeTransfer symTab ty)
 
 pesTag :: SymTab->Tag->(P.Pattern,P.EXPR)->(Pattern,EXPR_C) --For now,we only accept pattern matching on constructors.
 pesTag symTab tag ((P.Pattern ma e),eb) = let   a'=(fmap (\i->(i,tag++[1])) ma) 

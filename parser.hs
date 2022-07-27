@@ -82,7 +82,7 @@ dataStrDecl=try $ do
                         charH '}'
                         return $ DataStrDecl id t ts
 
-
+--------------------------------------------------------------------------------------------------------------------------------
 
 typE :: Parser TYPE
 typE=try (charH '(' *>typE'<*charH ')') <|> typE'
@@ -115,6 +115,39 @@ gettypeConstraint=(try . optional) $ try $ do
                                                 charH ')'
                                                 stringH "=>"
                                                 return $ c1:cs
+
+
+
+typeExpr :: Parser EXPR
+typeExpr=try $ (try ((charH '(' *> typeExpr <* charH ')'))
+                <|>  do
+                        e<-typeExpr'
+                        t<-try . optional $ do
+                                        stringH "::"
+                                        typE
+                        return (tagType e t)) 
+
+typeExpr' :: Parser EXPR
+typeExpr'=try $ try (fmap (\x->AppExpr x Nothing) funApp) --FunApp
+                <|> try (fmap (\x->TypeExpr x) typE)
+                <|>typeExpr''
+
+typeExpr'' :: Parser EXPR
+typeExpr''
+    =try $      try (fmap (\x->ConstExpr x Nothing) constVal) --Const
+                <|> try (fmap (\x->VarExpr x Nothing) iden) --Id
+                
+
+typeFunApp :: Parser FunApp
+typeFunApp=try $ do
+                i<-iden'
+                charH '('
+                p<-many typeExpr
+                charH ')'
+                return $ FunApp i p
+
+
+-------------------------------------------------------------------------------------------------------------------------------------
 
 
 op :: Parser OP

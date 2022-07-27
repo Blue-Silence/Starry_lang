@@ -11,6 +11,7 @@ data EXPR
     |BlockExpr Block (Maybe TYPE)
     |LambdaExpr Lambda (Maybe TYPE)
     |AppExpr FunApp (Maybe TYPE)
+    |TypeExpr TYPE
     deriving (Ord,Eq,Show)
 
 
