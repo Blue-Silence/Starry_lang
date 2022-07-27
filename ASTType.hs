@@ -45,7 +45,7 @@ data EXPR_C
 data Term=Term EXPR_C
     deriving (Ord,Eq,Show)
 ---------------------------------------------------------------------------------------------------------------
-data FunApp=FunApp Tag [EXPR_C]
+data FunApp=FunApp EXPR_C [EXPR_C]
     deriving (Ord,Eq,Show)
 
 newtype OP=OP Tag

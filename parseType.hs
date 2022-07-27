@@ -43,7 +43,7 @@ data Lambda=Lambda [Id] Block
 data Decl=FunDecl Id [Id] Block | VarDecl Id (Maybe EXPR) (Maybe TYPE) | TypeDecl Id TYPE | DataStrDecl Id TYPE [Decl]
     deriving (Ord,Eq,Show)
 
-data FunApp=FunApp Id [EXPR]
+data FunApp=FunApp EXPR [EXPR]
     deriving (Ord,Eq,Show)
 
 data ConStruct

@@ -101,7 +101,7 @@ exprTransfer tag symTab (P.OpExpr (P.OP i) es mt) =  let    i'=findTag symTab i
 exprTransfer tag symTab (P.VarExpr  i mt) = VarExpr (findTag symTab i) (fmap (typeTransfer symTab) mt)
 exprTransfer tag symTab (P.BlockExpr b mt) = BlockExpr  (scopeConstruct [] symTab tag b) (fmap (typeTransfer symTab) mt)
 exprTransfer tag symTab (P.AppExpr (P.FunApp i es) mt) = let    t=fmap (typeTransfer symTab) mt
-                                                                i'=findTag symTab i
+                                                                i'=exprTransfer tag symTab i
                                                                 es'=zipWith (\t e->exprTransfer (tagGen t tag) symTab e) tagCLtAny es
                                                                     in AppExpr (FunApp i' es') t tag
 exprTransfer tag symTab (P.LambdaExpr (P.Lambda ids b) mt) = let    param=fmap (\x->P.VarDecl x Nothing  Nothing) ids 

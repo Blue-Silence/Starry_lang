@@ -128,7 +128,7 @@ typeExpr=try $ (try ((charH '(' *> typeExpr <* charH ')'))
                         return (tagType e t)) 
 
 typeExpr' :: Parser EXPR
-typeExpr'=try $ try (fmap (\x->AppExpr x Nothing) funApp) --FunApp
+typeExpr'=try $ try (fmap (\x->AppExpr x Nothing) typeFunApp) --FunApp
                 <|> try (fmap (\x->TypeExpr x) typE)
                 <|>typeExpr''
 
@@ -140,7 +140,7 @@ typeExpr''
 
 typeFunApp :: Parser FunApp
 typeFunApp=try $ do
-                i<-iden'
+                i<-try (fmap (\x->VarExpr x Nothing) iden')<|>try (charH '(' *> typeExpr <* char ')')
                 charH '('
                 p<-many typeExpr
                 charH ')'
@@ -162,7 +162,7 @@ block=try $ do
 
 funApp :: Parser FunApp
 funApp=try $ do
-                i<-iden'
+                i<-try (fmap (\x->VarExpr x Nothing) iden')<|>try (charH '(' *> expr <* char ')')
                 charH '('
                 p<-many expr
                 charH ')'
