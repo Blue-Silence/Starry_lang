@@ -31,6 +31,7 @@ checkDecl t (FunDecl tag ts b) = let    funType'=getType t tag
                                             Left funType->let   (paramType,returnType)=getFunType tag funType ts
                                                                 ty'=checkBlock t paramType b
                                                                     in getRe [matchType (Left returnType) ty']
+checkDecl _ (Param _) = Left ()
 
 ----------------------------------------------------------------------------------------------------------------------------
 
@@ -92,12 +93,37 @@ checkConS envs (ConstrWhile eb b mty)
     |otherwise = Right ("Expect Bool expr in while-structure \n") 
 checkConS envs (ConReturn e mty) = matchMaybeType mty $ checkExpr envs e
 checkConS envs (ConstrCase ecase pes mty) = let caseT=checkExpr envs ecase
-                                                et=getGeneralType $ map (checkPattern envs) pes
+                                                et=getGeneralType $ map (checkPattern envs caseT) pes
                                                 in matchMaybeType mty et
 
-checkPattern :: [ENV]->(Pattern,EXPR_C)->Either Type ErrM
-checkPattern = undefined
+checkPattern :: [ENV]->Either Type ErrM->(Pattern,EXPR_C)->Either Type ErrM
+checkPattern preENV caseT ((Pattern mt (VarExpr vt mty)),e) = case matchMaybeType mty caseT of 
+                                                                    Right x->Right x 
+                                                                    Left caseT'->let    nenv=case mt of 
+                                                                                            Just a->ENV [] [Param a,Param vt] [TypeDecl a caseT',TypeDecl vt caseT']
+                                                                                            Nothing->ENV [] [Param vt] [TypeDecl vt caseT']
+                                                                                        env=nenv:preENV
+                                                                                            in checkExpr env e
+checkPattern preENV caseT ((Pattern mt (AppExpr (FunApp (VarExpr ftag ftm) pes) mty _)),e) 
+    = case matchMaybeType mty caseT of 
+        Right x->Right x 
+        Left caseT'->let    ttf=matchMaybeType ftm $getType preENV ftag
+                            stf=foldr (\_ t->ArrowType emptyTypeENV UnknownRe t) caseT' pes
+                            st'=matchType (Left stf) ttf
+                                in case st' of 
+                                    Right x->Right x
+                                    Left st''->let  paramTyLt=arrowToLt st''
+                                                    pes'=map (\(VarExpr t _)->t) pes
+                                                    nenv=case mt of 
+                                                        Just a->ENV [] ((Param a):(map Param pes')) (zipWith TypeDecl (a:pes') (caseT':paramTyLt))
+                                                        Nothing->ENV [] (map Param pes') (zipWith TypeDecl pes' paramTyLt)
+                                                    env=nenv:preENV
+                                                in checkExpr env e
+checkPattern _ _ _ = Right "Illegal Pattern matching structure. \n"
 
+
+arrowToLt (ArrowType _ t1 t2) = t1:(arrowToLt t2)
+arrowToLt _ = []
 
 
 

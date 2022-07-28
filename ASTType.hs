@@ -15,7 +15,7 @@ type SymTab=[(Id,Tag)]
 data ENV=ENV SymTab [Decl] [TypeDecl]
             deriving (Ord,Eq,Show)
 
-data Decl=ValDecl Tag EXPR_C | ConstructOR Tag | FunDecl Tag [Tag] Block
+data Decl=ValDecl Tag EXPR_C | ConstructOR Tag | FunDecl Tag [Tag] Block | Param Tag
             deriving (Ord,Eq,Show)
 data TypeDecl=TypeDecl Tag Type 
             deriving (Ord,Eq,Show)
