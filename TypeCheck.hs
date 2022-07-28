@@ -1,7 +1,7 @@
 module TypeCheck where
 
 import ASTType
-import Llvm (getVarType)
+import ParseType(Val(..))
 
 type ErrM=String
 
@@ -33,10 +33,61 @@ checkDecl t (FunDecl tag ts b) = let    funType'=getType t tag
 
 ----------------------------------------------------------------------------------------------------------------------------
 
-
+tagToType t = SingleType t emptyTypeENV 
+tagToENV x env = (ENV [] [] []):env
 
 checkExpr :: [ENV]->EXPR_C ->Either Type ErrM
-checkExpr es = undefined
+checkExpr es (ConstExpr v mty) = let    ty=case v of
+                                            ConstStr _->tagToType [1,2]
+                                            ConstInt _->tagToType [1,3]
+                                            ConstChar _->tagToType [1,4]
+                                            ConstBool _->tagToType [1,5]
+                                    in case mty of 
+                                            Nothing->Left ty
+                                            Just ty'->if ty'==ty then Left ty else Right ("Can't match type. Expected: "++(show ty')++"  Actual: "++(show ty)++"\n")
+checkExpr envs (OpExpr (OP o) es mty t) = case (getType envs o) of
+                                            Left ft->let t=funappType (tagToENV t envs) ft es
+                                                            in matchMaybeType mty t 
+                                            a->a
+checkExpr envs (VarExpr t mty) = matchMaybeType mty (getType envs t)
+checkExpr envs (BlockExpr b mty) = matchMaybeType mty (checkBlock envs [] b)
+checkExpr envs (AppExpr (FunApp fe es) mty tag) = let   envs'=tagToENV tag envs 
+                                                        in case checkExpr envs' fe of 
+                                                                (Right x)->Right x 
+                                                                (Left ft)->funappType envs' ft es
+checkExpr _ (TypeExpr _) = Left $ tagToType [1,1]
+checkExpr envs (LambdaExpr (Lambda sym b@(Block _ _ tag)) mty) = case mty of 
+                                                Nothing->Right "Error:Lambda need type. \n"
+                                                Just ft->let    (paramTypes,reT)=getFunType tag ft (fmap snd sym)
+                                                                    in case matchType (Left reT) (checkBlock envs paramTypes b) of 
+                                                                            Right x->Right x
+                                                                            Left _->Left ft 
+checkExpr envs a@(LambdaExpr (Lambda sym (BlockTerm (Term e))) mty) = Right ("Illegal lambda: "++show a++"\n")
+checkExpr envs (ConExpr con mty tag) = let  envs'=tagToENV tag envs 
+                                                in matchMaybeType mty $ checkConS envs' con
+                                                    
+
+
+
+
+funappType :: [ENV]->Type->[EXPR_C]->Either Type ErrM
+funappType envs ft es = let es'=concatEither $ map (checkExpr envs) es 
+                                in case es' of 
+                                    Right x->Right x 
+                                    Left es''->let  st=foldr (\x acc->ArrowType emptyTypeENV x acc) UnknownRe es''
+                                                    getReType [] a=Left a 
+                                                    getReType (_:xs) (ArrowType _ _ t)=getReType xs t 
+                                                    getReType _ _=Right "Param number too many \n"
+                                                        in case matchType (Left st) (Left ft) of 
+                                                            Left t->getReType es t
+                                                            a->a
+
+checkConS :: [ENV]->ConStruct->Either Type ErrM
+checkConS = undefined 
+
+matchMaybeType (Just t1) t2 = matchType (Left t1) t2
+matchMaybeType Nothing t2 = t2 
+
 
 -----------------------------------------------------------------------------------------------------------------------------
 
@@ -111,6 +162,7 @@ getTmpVarTypeL :: [(TagC,[(Tag,Type)],[(Tag,Type)])]->Tag->Type
 getTmpVarTypeL x = getTmpVarTypeH (concat (map (\(_,a,_)->a) x))
 getTmpVarTypeR x = getTmpVarTypeH (concat (map (\(_,_,a)->a) x))
 getTmpVarTypeH x t = let (Just s)=lookup t x in s
+getTmpVarTypeR' x t = lookup t (concat (map (\(_,_,a)->a) x))
 
 matchTypeExpr :: [(TagC,[(Tag,Type)],[(Tag,Type)])]->EXPR_C->EXPR_C->Either [(TagC,[(Tag,Type)],[(Tag,Type)])] ()
 matchTypeExpr a (AppExpr (FunApp f1 es1) _ _) (AppExpr (FunApp f2 es2) _ _)
@@ -136,9 +188,10 @@ setReturnType (ArrowType e t1 t2) t = ArrowType e t1 (setReturnType t2 t)
 
 concatType t@(SingleType tag e) as = if isTemp tag 
                                         then 
-                                            case getTmpVarTypeR as tag of 
-                                                                TypePlaceHolder _->Nothing
-                                                                a->Just a
+                                            case getTmpVarTypeR' as tag of 
+                                                                Just (TypePlaceHolder _)->Nothing
+                                                                Just a->Just a
+                                                                Nothing->Just t
                                             else Just t
 concatType (ArrowType e t1 t2) as = do 
                                         t1'<-concatType t1 as 
@@ -154,7 +207,7 @@ concatTypeExpr (TypeExpr e) as = fmap TypeExpr $ concatType e as
 concatTypeExpr t@(VarExpr tag mty) as = if isTemp tag 
                                         then 
                                             case getTmpVarTypeR as tag of 
-                                                                TypePlaceHolder _->Nothing
+                                                                TypePlaceHolder _->Just t
                                                                 a->Just $ TypeExpr a
                                             else Just t
 concatTypeExpr t@(AppExpr (FunApp e es) mty tag) as = do 
@@ -165,6 +218,7 @@ concatTypeExpr _ _ = Nothing
 
 
 ---------------------------------------------------------------------------------------------------------------------------
+
 getFunType :: Tag->Type->[Tag]->([(Tag,Type)],Type)
 getFunType lt a [] = ([],a)
 getFunType lt (SingleType _ _) (_:_) = error "Number of param mismatch"
@@ -232,3 +286,12 @@ getRe ((Left _):xs) = getRe xs
 getRe ((Right x):xs) = case getRe xs of
                         (Left _)->Right x
                         (Right xs')->Right (x++xs')
+
+concatEither t = let    f x acc =case acc of 
+                                Left as->case x of
+                                            Left a->Left (a:as)
+                                            Right x->Right x 
+                                Right e->case x of
+                                            Left _->Right e
+                                            Right x->Right (x++e)
+                in foldr f (Left []) t
