@@ -2,6 +2,7 @@ module TypeCheck where
 
 import ASTType
 import ParseType(Val(..))
+import Tools
 
 type ErrM=String
 
@@ -85,20 +86,25 @@ checkConS :: [ENV]->ConStruct->Either Type ErrM
 checkConS envs (ConstrIf eb e1 e2 mty)
     |isBool envs eb = matchMaybeType mty ty
     |otherwise = Right ("Expect Bool expr in if-structure \n") 
-        where   ty=getGeneralType envs [[e1,e2],[e2,e1]]
+        where   ty=getGeneralType $ map (checkExpr envs) [e1,e2]
 checkConS envs (ConstrWhile eb b mty)
     |isBool envs eb = matchMaybeType mty $ checkBlock envs [] b 
     |otherwise = Right ("Expect Bool expr in while-structure \n") 
 checkConS envs (ConReturn e mty) = matchMaybeType mty $ checkExpr envs e
-checkConS envs (ConstrCase ecase pes mty) = undefined 
+checkConS envs (ConstrCase ecase pes mty) = let caseT=checkExpr envs ecase
+                                                et=getGeneralType $ map (checkPattern envs) pes
+                                                in matchMaybeType mty et
+
+checkPattern :: [ENV]->(Pattern,EXPR_C)->Either Type ErrM
+checkPattern = undefined
 
 
 
-getGeneralType envs lt = let    f a (Left b)=Left b
-                                f a _=a 
-                                    in foldl1 f $ map ((foldl1 matchType) . (map (checkExpr envs))) lt
 
-
+getGeneralType :: [Either Type ErrM] -> Either Type ErrM
+getGeneralType lt = let f a (Left b)=Left b
+                        f a _=a 
+                            in foldl1 f $ map (foldl1 matchType) (permutation lt)
 
 
 
