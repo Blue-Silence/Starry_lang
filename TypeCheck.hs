@@ -173,7 +173,7 @@ matchTypeH ((tc,stv,ttv):as) t1@(ArrowType (TypeENV _ tye1) t11 t12) t2@(ArrowTy
 matchTypeH a@((tc,stv,ttv):as) t1@(SingleType tag1 (TypeENV _ tye1)) t2@(SingleType tag2 (TypeENV _ tye2))
     |isTemp tag1 && isTemp tag2 = addELt $ setTmpVarType a' tag2 (getTmpVarTypeL a' tag1)
     |isTemp tag1 = Right ()
-    |isTemp tag2 = addELt $ setTmpVarType a' tag2 (getTmpVarTypeL a' tag1)
+    |isTemp tag2 = addELt $ setTmpVarType a' tag2 t1
     |otherwise = if tag1 == tag2 then Left ([],a) else Right ()
         where   (tc',stv')=addPH tc stv tye1
                 (tc'',ttv')=addPH tc' ttv tye2
@@ -188,7 +188,7 @@ matchTypeH ((tc,stv,ttv):as) t1@(ExprType e1 (TypeENV _ tye1)) t2@(ExprType e2 (
                                                                                                                 in case matchTypeExpr a' e1 e2 of
                                                                                                                         Left (_:as)->addELt $ Left as
                                                                                                                         _->Right()
-matchTypeH a b c = Right () --error ("matchTypeH function not matched. Param: "++(show a)++(show b)++(show c))
+matchTypeH a b c = Right ()
 
 addLt x (Left (xs,ys)) = Left (x++xs,ys)
 addLt _ a = a
@@ -218,7 +218,9 @@ setTmpVarType a tag tarTy = let ty=getTmpVarTypeR a tag in
 getTmpVarTypeL :: [(TagC,[(Tag,Type)],[(Tag,Type)])]->Tag->Type
 getTmpVarTypeL x = getTmpVarTypeH (concat (map (\(_,a,_)->a) x))
 getTmpVarTypeR x = getTmpVarTypeH (concat (map (\(_,_,a)->a) x))
-getTmpVarTypeH x t = let (Just s)=lookup t x in s
+getTmpVarTypeH x t = case lookup t x of 
+                        (Just s)->s
+                        _->error $ "Can't find variable"++(show t) 
 getTmpVarTypeR' x t = lookup t (concat (map (\(_,_,a)->a) x))
 
 matchTypeExpr :: [(TagC,[(Tag,Type)],[(Tag,Type)])]->EXPR_C->EXPR_C->Either [(TagC,[(Tag,Type)],[(Tag,Type)])] ()
