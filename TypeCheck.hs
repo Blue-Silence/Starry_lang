@@ -169,6 +169,7 @@ matchTypeH ((tc,stv,ttv):as) t1@(ArrowType (TypeENV _ tye1) t11 t12) t2@(ArrowTy
                 in case matchTypeH ((tc''+1,[],[]):(tc'',stv',ttv'):as) t11 t21 of
                             Left (tts,(a:as))->addLt tts $matchTypeH as t12 t22
                             Right _->Right ()
+                            _->Right ()
 matchTypeH a@((tc,stv,ttv):as) t1@(SingleType tag1 (TypeENV _ tye1)) t2@(SingleType tag2 (TypeENV _ tye2))
     |isTemp tag1 && isTemp tag2 = addELt $ setTmpVarType a' tag2 (getTmpVarTypeL a' tag1)
     |isTemp tag1 = Right ()
@@ -240,6 +241,7 @@ replaceTy ty tarTy t
 setUnknownType (t:_) UnknownRe = t 
 setUnknownType (t:ts) (ArrowType env UnknownRe t2) = ArrowType env t $ setUnknownType ts t2 
 setUnknownType ts (ArrowType env t1 t2) = ArrowType env t1 $ setUnknownType ts t2
+setUnknownType _ a = a
 
 
 
