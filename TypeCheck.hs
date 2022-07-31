@@ -320,7 +320,7 @@ checkBlock t inject (Block bs (ENV symTab decls tds) tag) = let tds'=(map (\(t,t
                                                                 re1=map (checkBlock t' []) bs
                                                                 re2=map (checkDecl t) decls
                                                                 returnVal=foldl splitBlock [] bs
-                                                                returnType=foldl1 matchType (map (checkExpr t') returnVal)
+                                                                returnType=getGeneralType (map (checkExpr t') returnVal)
                                                                     in case getRe [getRe re1,getRe re2,getRe [returnType]] of
                                                                             Left _->returnType
                                                                             Right x->Right x

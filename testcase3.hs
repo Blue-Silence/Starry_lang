@@ -22,3 +22,8 @@ tm32 = ArrowType tye2 tm30 (SingleType [0,1] emptyTypeENV)
 
 tm41 = ArrowType tye2 (SingleType [0,1] emptyTypeENV) (SingleType [0,1] emptyTypeENV)
 tm42 = ArrowType emptyTypeENV (SingleType [1,1] emptyTypeENV) UnknownRe 
+
+-----------------------------------------------------------------------------
+-- test getFunType
+
+tg1 = tm21'
