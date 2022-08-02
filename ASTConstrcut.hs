@@ -30,8 +30,8 @@ splitDef (xs,ys) (z:zs)=case z of
 genDecl :: SymTab->[P.Decl]->[Decl]
 genDecl _ [] = []
 genDecl s ((P.TypeDecl _ _):zs) = genDecl s zs 
-genDecl s  ((P.DataStrDecl i _ ds):zs) = (ConstructOR (findTag s i)):
-                                            (map (\(P.TypeDecl t _)->(ConstructOR (findTag s t))) ds)
+genDecl s  ((P.DataStrDecl i ty ds):zs) = (ConstructOR (findTag s i) (countParam ty)):
+                                            (map (\(P.TypeDecl t ty)->(ConstructOR (findTag s t) (countParam ty))) ds)
                                             ++(genDecl s zs)
 genDecl s ((P.VarDecl i me mt):zs) = let    t=findTag s i
                                             me'=fmap (exprTransfer t s) me
@@ -47,6 +47,10 @@ genDecl s ((P.FunDecl i is b):zs) = let t=findTag s i
 exprToBlock :: Tag->SymTab->P.EXPR->[Block]
 exprToBlock t s (P.BlockExpr b mt) = [scopeConstruct [] s t b]
 exprToBlock t s e = [BlockTerm . Term $ exprTransfer t s e]
+
+countParam (P.SingleType _ _) = 0
+countParam (P.ArrowType _ t _) = 1+(countParam t)
+
 -------------------------------------------------------------------------------------------------------------------------------------------
 getID :: P.Decl->[P.Id]
 getID (P.FunDecl x _ _) = [x]

@@ -19,7 +19,7 @@ mixENV ((ENV s d td):es)=let (ENV s' d' td')= mixENV es in ENV (s++s') (d++d') (
 
 
 checkDecl :: [ENV]->Decl->Either () ErrM
-checkDecl _ (ConstructOR _) = Left ()
+checkDecl _ (ConstructOR _ _) = Left ()
 checkDecl t (ValDecl tag e) = let   ty=checkExpr t e
                                     ty'=getType t tag
                                         in case (matchType ty' ty) of
