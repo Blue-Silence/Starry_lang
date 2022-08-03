@@ -34,7 +34,9 @@ lambdaCGEN (t:ts) b = let   t'=tagCGEN t
 
 
 blockCGEN :: Block->String 
-blockCGEN = undefined 
+blockCGEN (BlockTerm (Term (ConExpr (ConReturn e _) _ _))) = "(set! __returnVal " ++ eCGEN e ++ "  \n"
+blockCGEN (BlockTerm (Term e)) = '(':eCGEN e++") \n"
+blockCGEN (Block bs env _) = undefined {-"(  " ++ envCGEN env ++ (concat . (map blockCGEN)) bs ++ () -}
 
 
 
