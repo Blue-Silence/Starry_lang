@@ -1,4 +1,4 @@
-module ASTType where
+module ASTType(module ASTType,Id(..),Val(..)) where
 
 import ParseType(Id(..),Val(..))
 
