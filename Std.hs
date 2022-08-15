@@ -118,3 +118,8 @@ genC (d:ds)= case def d of
                 Nothing->genC ds
 
 
+stdM1 = genMod [1] [dType,dString,dInt,dChar,dBool]
+stdM2 = genMod [2] [dPlus,dMinus,dMul,dDiv]
+
+std1 = genC [dType,dString,dInt,dChar,dBool]
+std2 = genC [dPlus,dMinus,dMul,dDiv]
