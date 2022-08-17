@@ -21,7 +21,7 @@ main = do
     contents<-hGetContents h
     let parseRe = parse topMostParser "" contents 
     let ast = case parseRe of 
-            Right x->moduleConstruct [10] x 
+            Right x->moduleConstruct [stdM1,stdM2] [10] x 
             Left x->error $ show x
     let out=case typeCheck [stdM1,stdM2,ast] of
                 Right e->error e

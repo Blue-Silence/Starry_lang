@@ -32,6 +32,7 @@ checkDecl t (FunDecl tag ts b) = let    funType'=getType t tag
                                                                 ty'=checkBlock t paramType b
                                                                     in getRe [matchType (Left returnType) ty']
 checkDecl _ (Param _) = Left ()
+checkDecl _ (Foreign _) = Left ()
 
 ----------------------------------------------------------------------------------------------------------------------------
 

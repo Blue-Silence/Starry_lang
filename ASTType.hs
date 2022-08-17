@@ -9,6 +9,7 @@ tagCLt=[1..] -- 0 is preserved as type varible
 tagCLtAny=[-1,-2..] -- negative number used to tag anonymous scope
 
 data Module=Module Tag ENV
+        deriving (Ord,Eq,Show)
  
 type SymTab=[(Id,Tag)]
 

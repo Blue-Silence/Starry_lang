@@ -64,7 +64,7 @@ eCGEN (ConExpr con _ _) = conStructCGEN con
 
 
 tagCGEN :: Tag->String
-tagCGEN t = "  ___"++tagCGEN t++"  "
+tagCGEN t = "  ___"++tagCGEN' t++"  "
 tagCGEN' [] = []
 tagCGEN' [a] = show a
 tagCGEN' (a:as) = show a ++ '-':(tagCGEN' as)

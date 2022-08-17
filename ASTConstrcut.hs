@@ -7,8 +7,18 @@ import qualified ParseType as P
 pre :: [P.Decl]->P.Block
 pre x = P.Block $ fmap P.DeclTerm x
 
-moduleConstruct :: Tag->[P.Decl] -> Module
-moduleConstruct t ds = let (Block _ e _) = scopeConstruct [] [] t . pre $ ds in Module t e 
+moduleConstruct :: [Module]->Tag->[P.Decl] -> Module
+moduleConstruct ms t ds = let (Block _ e _) = let   sym = concatMap (\(Module _ (ENV s _ _))->s) ms
+                                                        in scopeConstructSameLevel [] sym t . pre $ ds in Module t e 
+
+scopeConstructSameLevel :: [P.Decl]->SymTab->Tag->P.Block->Block
+scopeConstructSameLevel param s tag (P.Block lt)= let   (def,term)=splitDef ([],[]) lt
+                                                        symTab=(genSymTab tag param def )++ s -- ++preSymTab
+                                                        typeTab=genTypeTab symTab def
+                                                        decl=genDecl symTab def
+                                                        env=ENV symTab decl typeTab
+                                                        bs=concat $ zipWith (\x y->exprToBlock (tag++[x]) symTab y) tagCLtAny term
+                                                            in Block bs env tag
 
 ----------------------------------------------------------------------------------------------------------------------
 
