@@ -34,9 +34,9 @@ lambdaCGEN (t:ts) b = let   t'=tagCGEN t
 
 
 blockCGEN :: Block->String
-blockCGEN (BlockTerm (Term (ConExpr (ConReturn e _) _ _))) = "(set! __returnVal " ++ eCGEN e ++ "  \n"
+blockCGEN (BlockTerm (Term (ConExpr (ConReturn e _) _ _))) = "(set! __returnVal " ++ eCGEN e ++ "  )\n"
 blockCGEN (BlockTerm (Term e)) = eCGEN e++" \n"
-blockCGEN (Block bs env _) = "((Lambda () " ++ envCGEN env ++ "\n(" ++ (concat . (map blockCGEN)) bs ++ "))\n" --undefined {-"(  " ++ envCGEN env ++ (concat . (map blockCGEN)) bs ++ () -}
+blockCGEN (Block bs env _) = "((Lambda () " ++ envCGEN env ++ "(define __returnVal 0)" ++ "\n" ++ (concat . (map blockCGEN)) bs ++ "))\n" --undefined {-"(  " ++ envCGEN env ++ (concat . (map blockCGEN)) bs ++ () -}
 
 
 
@@ -64,7 +64,7 @@ eCGEN (ConExpr con _ _) = conStructCGEN con
 
 
 tagCGEN :: Tag->String
-tagCGEN t = "  ___"++tagCGEN' t++"  "
+tagCGEN t = "  ___VAR_"++tagCGEN' t++"  "
 tagCGEN' [] = []
 tagCGEN' [a] = show a
 tagCGEN' (a:as) = show a ++ '-':(tagCGEN' as)
