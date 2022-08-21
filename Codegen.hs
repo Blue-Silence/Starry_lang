@@ -86,7 +86,7 @@ conStructCGEN :: ConStruct->String
 conStructCGEN (ConReturn e _) = eCGEN e
 conStructCGEN (ConstrIf eb et ef _) = "  (if " ++ eCGEN eb ++ eCGEN et ++ eCGEN ef ++ ")  "
 conStructCGEN (ConstrWhile eb b _) = "  ((Lambda (x) (define (loop t)  (define val " ++ blockCGEN b ++ ") " ++ "(if " ++ eCGEN eb ++ " (loop t) " ++  "val ) )" ++ "(if " ++ eCGEN eb ++ " (loop t) " ++  "0 )) " ++ eCGEN eb ++ ")"
-conStructCGEN (ConstrCase e pes _) = "(let (caseVal "++ eCGEN e ++ ") " ++ "(case " ++ "(car caseVal) " ++ concat (map patternCGEN pes) ++ ")  )\n"
+conStructCGEN (ConstrCase e pes _) = "(let ((caseVal "++ eCGEN e ++ ")) " ++ "(case " ++ "(car caseVal) " ++ concat (map patternCGEN pes) ++ ")  )\n"
 
 patternCGEN (Pattern mt e,expr) = let   aDef=case mt of
                                             Nothing->""
@@ -94,10 +94,10 @@ patternCGEN (Pattern mt e,expr) = let   aDef=case mt of
                                                 in case e of
                                                     (VarExpr t _)->
                                                             let bDef = "( " ++ tagCGEN t ++ "caseVal" ++ ") "
-                                                                in " (else (let " ++ aDef ++ bDef ++ eCGEN expr ++ ")  )"
+                                                                in " (else (let " ++ "("++ aDef ++ bDef ++ ")" ++ eCGEN expr ++ ")  )"
                                                     (AppExpr (FunApp (VarExpr f _) es) _ _)->
                                                             let fs='\"' : tagCGEN f ++ "\"  "
                                                                 ltS=" (caseVLt (cdr caseVal)) "
-                                                                bDef=concatMap (\(i,(VarExpr t _))->" (" ++ tagCGEN t ++ "(vector-ref caseVLt " ++ show i ++") ") (zip [0,1..] es)
-                                                                    in " ( (" ++ fs ++ ") (let " ++ ltS ++ aDef ++ bDef ++ eCGEN expr ++ ")  )"
+                                                                bDef=concatMap (\(i,(VarExpr t _))->" (" ++ tagCGEN t ++ "(vector-ref caseVLt " ++ show i ++") )") (zip [0,1..] es)
+                                                                    in " ( (" ++ fs ++ ") (let " ++ "("++ ltS ++ aDef ++ bDef ++ ")"++ eCGEN expr ++ ")  )"
                                                     _->error ""
