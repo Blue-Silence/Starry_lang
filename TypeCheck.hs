@@ -327,7 +327,7 @@ checkBlock t inject (Block bs (ENV symTab decls tds) tag) = let tds'=(map (\(t,t
                                                                             Right x->Right x
 
 splitBlock :: [EXPR_C]->Block->[EXPR_C]
-splitBlock re (BlockTerm (Term (ConExpr (ConReturn e _) _ _))) = e:re
+splitBlock re (BlockTerm (Term e@(ConExpr (ConReturn _ _) _ _))) = e:re
 splitBlock re _ = re
 
 -------------------------------------------------------------------------------------------------------------

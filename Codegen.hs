@@ -22,7 +22,13 @@ declCGEN (FunDecl ft pts b) = "  (define "
                               ++ "  ) \n"
 declCGEN (ConstructOR tag pn) = let param=map (:[]) $ take pn [1,2..]
                                     b="(cons " ++ "  \"" ++ show tag ++ "\"  " ++ "#( " ++ (concat . (map tagCGEN)) param ++ "  ))"
-                                        in lambdaCGEN param b
+                                        in  "  (define "
+                                            ++ (tagCGEN tag)
+                                            ++ "  "
+                                            ++lambdaCGEN param b
+                                            ++ ") \n"
+declCGEN (Foreign _) = "" 
+                                            
 
 
 
@@ -36,7 +42,7 @@ lambdaCGEN (t:ts) b = let   t'=tagCGEN t
 blockCGEN :: Block->String
 blockCGEN (BlockTerm (Term (ConExpr (ConReturn e _) _ _))) = "(set! __returnVal " ++ eCGEN e ++ "  )\n"
 blockCGEN (BlockTerm (Term e)) = eCGEN e++" \n"
-blockCGEN (Block bs env _) = "((Lambda () " ++ envCGEN env ++ "(define __returnVal 0)" ++ "\n" ++ (concat . (map blockCGEN)) bs ++ "__returnVal ))\n" --undefined {-"(  " ++ envCGEN env ++ (concat . (map blockCGEN)) bs ++ () -}
+blockCGEN (Block bs env _) = "((Lambda () " ++ envCGEN env ++ "(define __returnVal 0)" ++ "\n" ++ (concat . (map blockCGEN)) bs ++ "__returnVal ))\n"
 
 
 
