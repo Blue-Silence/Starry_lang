@@ -36,7 +36,7 @@ lambdaCGEN (t:ts) b = let   t'=tagCGEN t
 blockCGEN :: Block->String
 blockCGEN (BlockTerm (Term (ConExpr (ConReturn e _) _ _))) = "(set! __returnVal " ++ eCGEN e ++ "  )\n"
 blockCGEN (BlockTerm (Term e)) = eCGEN e++" \n"
-blockCGEN (Block bs env _) = "((Lambda () " ++ envCGEN env ++ "(define __returnVal 0)" ++ "\n" ++ (concat . (map blockCGEN)) bs ++ "))\n" --undefined {-"(  " ++ envCGEN env ++ (concat . (map blockCGEN)) bs ++ () -}
+blockCGEN (Block bs env _) = "((Lambda () " ++ envCGEN env ++ "(define __returnVal 0)" ++ "\n" ++ (concat . (map blockCGEN)) bs ++ "__returnVal ))\n" --undefined {-"(  " ++ envCGEN env ++ (concat . (map blockCGEN)) bs ++ () -}
 
 
 
@@ -53,7 +53,7 @@ eCGEN (LambdaExpr (Lambda symTab b) _) = "  (Lambda  (" ++ concat (map (\(x,y)->
 eCGEN (TypeExpr _) = ""
 eCGEN (OpExpr (OP opt) es _ _) = "  (" ++ tagCGEN opt ++ concat (map eCGEN es) ++ ")  "
 eCGEN (ConstExpr v _) = valCGEN v
-eCGEN (AppExpr (FunApp e es) _ _) = "  (" ++ concat (map eCGEN (e:es)) ++ ")  "
+eCGEN (AppExpr (FunApp e es) _ _) = let f=eCGEN e in foldl (\f e->" ( " ++ f ++ eCGEN e ++ " ) ") f es
 eCGEN (ConExpr con _ _) = conStructCGEN con
 
 
