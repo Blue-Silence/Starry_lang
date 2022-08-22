@@ -77,12 +77,29 @@ genTypeTab s ps = concat (map (genType s) ps)
 
 genType :: SymTab->P.Decl->[TypeDecl]
 genType  _ (P.FunDecl _ _ _) = []
-genType symTab (P.VarDecl v _ t) = case t of 
+genType symTab (P.VarDecl v e t) = case fmap (exprTransfer (findTag symTab v) symTab) e of 
+                                        Nothing->[]
+                                        Just expr->case getExprType expr of 
+                                            Just ty->[TypeDecl (findTag symTab v) ty]
+                                            Nothing->[]
+
+                                    {-case t of 
                                     Nothing->[]
-                                    Just ty->[TypeDecl (findTag symTab v) (typeTransfer symTab ty)]
+                                    Just ty->[TypeDecl (findTag symTab v) (typeTransfer symTab ty)]-}
 genType symTab (P.DataStrDecl x t decl) = (TypeDecl (findTag symTab x) (typeTransfer symTab t)):
                                                     (concat $ map (genType symTab) decl)
 genType symTab (P.TypeDecl x ty) = [TypeDecl (findTag symTab x) (typeTransfer symTab ty)]
+
+
+
+getExprType (ConstExpr _ t) = t
+getExprType (OpExpr _ _ t _) = t
+getExprType (VarExpr _ t) = t
+getExprType (ConExpr _ t _) = t
+getExprType (BlockExpr _ t) = t
+getExprType (LambdaExpr _ t) = t
+getExprType (AppExpr _ t _) = t
+getExprType (TypeExpr _) = Nothing
 
 -------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -45,9 +45,7 @@ checkExpr es (ConstExpr v mty) = let    ty=case v of
                                             ConstInt _->tagToType [1,3]
                                             ConstChar _->tagToType [1,4]
                                             ConstBool _->tagToType [1,5]
-                                    in case mty of
-                                            Nothing->Left ty
-                                            Just ty'->if ty'==ty then Left ty else Right ("Can't match type. Expected: "++(show ty')++"  Actual: "++(show ty)++"\n")
+                                    in matchMaybeType mty (Left ty)
 checkExpr envs (OpExpr (OP o) es mty t) = case (getType envs o) of
                                             Left ft->let t=funappType (tagToENV t envs) ft es
                                                             in matchMaybeType mty t
@@ -319,7 +317,7 @@ checkBlock t _ (BlockTerm (Term e)) = checkExpr t e
 checkBlock t inject (Block bs (ENV symTab decls tds) tag) = let tds'=(map (\(t,ty)->TypeDecl t ty) inject)++tds
                                                                 t'=(ENV symTab decls tds'):t
                                                                 re1=map (checkBlock t' []) bs
-                                                                re2=map (checkDecl t) decls
+                                                                re2=map (checkDecl t') decls
                                                                 returnVal=foldl splitBlock [] bs
                                                                 returnType=getGeneralType (map (checkExpr t') returnVal)
                                                                     in case getRe [getRe re1,getRe re2,getRe [returnType]] of
@@ -334,7 +332,7 @@ splitBlock re _ = re
 getType :: [ENV]->Tag->Either Type ErrM
 getType tab t = case getType' (reverse tab) t t of
                     Just x->Left x
-                    Nothing->Right ("Type not found for : "++(show t))
+                    Nothing->Right $ ("Type not found for : "++(show t)) ++ " in " ++ show tab
 
 getType' [] _ _=Nothing
 getType' ((ENV _ _ tds):_) (_:_:[]) t'=lookup t' $ map (\(TypeDecl tag ty)->(tag,ty)) tds
