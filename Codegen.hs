@@ -21,7 +21,7 @@ declCGEN (FunDecl ft pts b) = "  (define "
                               ++ lambdaCGEN pts (blockCGEN b)
                               ++ "  ) \n"
 declCGEN (ConstructOR tag pn) = let param=map (:[]) $ take pn [1,2..]
-                                    b="(cons " ++ "  \"" ++ show tag ++ "\"  " ++ "#( " ++ (concat . (map tagCGEN)) param ++ "  ))"
+                                    b="(cons " ++ "  \"" ++ show tag ++ "\"  " ++ "(vector " ++ (concat . (map tagCGEN)) param ++ "  ))"
                                         in  "  (define "
                                             ++ (tagCGEN tag)
                                             ++ "  "
