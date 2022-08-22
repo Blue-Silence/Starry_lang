@@ -21,7 +21,7 @@ declCGEN (FunDecl ft pts b) = "  (define "
                               ++ lambdaCGEN pts (blockCGEN b)
                               ++ "  ) \n"
 declCGEN (ConstructOR tag pn) = let param=map (:[]) $ take pn [1,2..]
-                                    b="(cons " ++ "  \"" ++ show tag ++ "\"  " ++ "(vector " ++ (concat . (map tagCGEN)) param ++ "  ))"
+                                    b="(cons " ++ "  \"" ++ tagCGEN tag ++ "\"  " ++ "(vector " ++ (concat . (map tagCGEN)) param ++ "  ))"
                                         in  "  (define "
                                             ++ (tagCGEN tag)
                                             ++ "  "
@@ -99,5 +99,5 @@ patternCGEN (Pattern mt e,expr) = let   aDef=case mt of
                                                             let fs='\"' : tagCGEN f ++ "\"  "
                                                                 ltS=" (caseVLt (cdr caseVal)) "
                                                                 bDef=concatMap (\(i,(VarExpr t _))->" (" ++ tagCGEN t ++ "(vector-ref caseVLt " ++ show i ++") )") (zip [0,1..] es)
-                                                                    in " ( (" ++ fs ++ ") (let " ++ "("++ ltS ++ aDef ++ bDef ++ ")"++ eCGEN expr ++ ")  )"
+                                                                    in " ( " ++ fs ++ " (let " ++ "("++ ltS ++ aDef ++ bDef ++ ")"++ eCGEN expr ++ ")  )"
                                                     _->error ""
