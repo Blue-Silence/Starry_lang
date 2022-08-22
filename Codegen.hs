@@ -99,5 +99,5 @@ patternCGEN (Pattern mt e,expr) = let   aDef=case mt of
                                                             let fs='\"' : tagCGEN f ++ "\"  "
                                                                 ltS=" (caseVLt (cdr caseVal)) "
                                                                 bDef=concatMap (\(i,(VarExpr t _))->" (" ++ tagCGEN t ++ "(vector-ref caseVLt " ++ show i ++") )") (zip [0,1..] es)
-                                                                    in " ( " ++ fs ++ " (let " ++ "("++ ltS ++ aDef ++ bDef ++ ")"++ eCGEN expr ++ ")  )"
+                                                                    in " ( " ++ fs ++ " (let " ++ "("++ ltS ++ ") (let ("++ aDef ++ bDef ++ ")"++ eCGEN expr ++ ")  ))"
                                                     _->error ""
