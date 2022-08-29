@@ -81,6 +81,7 @@ valCGEN (ConstStr str) = '\"' : str ++ "\""
 valCGEN (ConstInt int) = show int
 valCGEN (ConstChar c) = '\'' : show c ++ "\'"
 valCGEN (ConstBool b) = if b then "#t" else "#f"
+valCGEN ConstVoid = ""
 
 conStructCGEN :: ConStruct->String
 conStructCGEN (ConReturn e _) = eCGEN e

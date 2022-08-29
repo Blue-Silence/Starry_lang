@@ -26,6 +26,7 @@ data Val
     |ConstInt Int 
     |ConstChar Char 
     |ConstBool Bool
+    |ConstVoid 
     deriving (Ord,Eq,Show)
 
 data TYPE=SingleType EXPR [TypeConstraint]| ArrowType TYPE TYPE [TypeConstraint]

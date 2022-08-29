@@ -45,6 +45,7 @@ checkExpr es (ConstExpr v mty) = let    ty=case v of
                                             ConstInt _->tagToType [1,3]
                                             ConstChar _->tagToType [1,4]
                                             ConstBool _->tagToType [1,5]
+                                            ConstVoid  ->tagToType [1,6]
                                     in matchMaybeType mty (Left ty)
 checkExpr envs (OpExpr (OP o) es mty t) = case (getType envs o) of
                                             Left ft->let t=funappType (tagToENV t envs) ft es

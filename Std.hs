@@ -48,6 +48,12 @@ dBool=FPair {
     ,def=Nothing
 }
 
+dVoid=FPair {
+    name="Bool"
+    ,tag=[1,6]
+    ,tYPE=SingleType [1,1] emptyTypeENV 
+    ,def=Nothing
+}
 
 
 
@@ -122,5 +128,5 @@ genC (d:ds)= case def d of
 stdM1 = genMod [1] [dType,dString,dInt,dChar,dBool]
 stdM2 = genMod [2] [dPlus,dMinus,dMul,dDiv]
 
-std1 = genC [dType,dString,dInt,dChar,dBool]
+std1 = genC [dType,dString,dInt,dChar,dBool,dVoid]
 std2 = genC [dPlus,dMinus,dMul,dDiv]
