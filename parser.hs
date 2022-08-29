@@ -171,7 +171,29 @@ funApp=try $ do
 
 
 constVal :: Parser Val
-constVal=try $ fmap ConstInt (Parser.lexeme L.decimal)
+constVal=try $ cInt <|> cBool <|> cString <|> cChar <|> cVoid
+
+cInt = try $ fmap ConstInt (Parser.lexeme L.decimal)
+cBool = fmap (\x->case x of 
+                "True"->ConstBool True
+                _->ConstBool False
+              )
+        $ try $ stringH "True" <|> stringH "False"
+
+cString = try $ do 
+                char '\"'
+                s<-many alphaNumChar
+                charH '\"'
+                return $ ConstStr s
+cChar = try $ do 
+                char '\''
+                c<-alphaNumChar
+                charH '\''
+                return $ ConstChar c
+
+cVoid = try $ fmap (const ConstVoid) (stringH "Void") 
+
+
 
 iden' :: Parser Id --No space followed
 iden'=try $ do
