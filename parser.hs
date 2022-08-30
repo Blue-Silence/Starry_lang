@@ -9,7 +9,10 @@ import Text.Megaparsec.Char.Lexer as L
 type Parser = Parsec Void String
 
 topMostParser :: Parser [Decl]
-topMostParser=many decl
+topMostParser=do 
+                d<-many decl
+                eof
+                return d
 
 
 term :: Parser Term

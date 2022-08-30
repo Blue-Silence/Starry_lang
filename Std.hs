@@ -49,7 +49,7 @@ dBool=FPair {
 }
 
 dVoid=FPair {
-    name="Bool"
+    name="Void"
     ,tag=[1,6]
     ,tYPE=SingleType [1,1] emptyTypeENV 
     ,def=Nothing
@@ -110,8 +110,45 @@ dDiv=FPair{
     ,def=Just "/"
 }
 
+dHead=FPair{
+    name="head"
+    ,tag=[2,5]
+    ,tYPE= ArrowType 
+                emptyTypeENV 
+                (SingleType [1,2] emptyTypeENV )
+                (SingleType [1,4] emptyTypeENV ) 
+    ,def=Just "car"
+}
 
+dTail=FPair{
+    name="tail"
+    ,tag=[2,4]
+    ,tYPE= ArrowType 
+                emptyTypeENV 
+                (SingleType [1,2] emptyTypeENV )
+                (SingleType [1,2] emptyTypeENV ) 
+    ,def=Just "cdr"
+}
 
+dIsNull=FPair{
+    name="isnull"
+    ,tag=[2,4]
+    ,tYPE= ArrowType 
+                emptyTypeENV 
+                (SingleType [1,2] emptyTypeENV )
+                (SingleType [1,5] emptyTypeENV ) 
+    ,def=Just "null?"
+}
+
+dPut=FPair{
+    name="put"
+    ,tag=[2,4]
+    ,tYPE= ArrowType 
+                emptyTypeENV 
+                (SingleType [1,4] emptyTypeENV )
+                (SingleType [1,6] emptyTypeENV ) 
+    ,def=Just "display"
+}
 
 
 genMod :: Tag->[FPair]->Module
@@ -125,8 +162,8 @@ genC (d:ds)= case def d of
                 Nothing->genC ds
 
 
-stdM1 = genMod [1] [dType,dString,dInt,dChar,dBool]
-stdM2 = genMod [2] [dPlus,dMinus,dMul,dDiv]
+stdM1 = genMod [1] [dType,dString,dInt,dChar,dBool,dVoid]
+stdM2 = genMod [2] [dPlus,dMinus,dMul,dDiv,dHead,dTail,dIsNull,dPut]
 
 std1 = genC [dType,dString,dInt,dChar,dBool,dVoid]
-std2 = genC [dPlus,dMinus,dMul,dDiv]
+std2 = genC [dPlus,dMinus,dMul,dDiv,dHead,dTail,dIsNull,dPut]

@@ -79,9 +79,9 @@ tagCGEN' (a:as) = show a ++ '-':(tagCGEN' as)
 valCGEN :: Val->String
 valCGEN (ConstStr str) = "(string->list \"" ++ str ++ "\" ) "
 valCGEN (ConstInt int) = show int
-valCGEN (ConstChar c) = '\'' : show c ++ "\'"
+valCGEN (ConstChar c) = "#\\" ++ show c
 valCGEN (ConstBool b) = if b then "#t" else "#f"
-valCGEN ConstVoid = ""
+valCGEN ConstVoid = "'()"
 
 conStructCGEN :: ConStruct->String
 conStructCGEN (ConReturn e _) = eCGEN e
