@@ -156,9 +156,9 @@ genMod tgM lt = let (a,b,c)=foldl (\(a,b,c) d->((Id $ name d,tag d):a,(Foreign $
                     in Module tgM (ENV a b c)
 
 genC :: [FPair]->String 
-genC [] = ""
+genC [] = "\n\n"
 genC (d:ds)= case def d of 
-                Just df->"(define " ++ (tagCGEN $ tag d) ++ df ++ "  )" ++ genC ds 
+                Just df->"(define " ++ (tagCGEN $ tag d) ++ df ++ " )\n" ++ genC ds 
                 Nothing->genC ds
 
 
